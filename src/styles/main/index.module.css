@@ -1,0 +1,35 @@
+.main {
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--ant-color-bg-base);
+  display: flex;
+}
+.content {
+  flex: 1;
+  padding: var(--content-padding);
+}
+.sidebar_container {
+  width: 200px;
+  height: 100%;
+  background-color: var(--ant-color-bg-base);
+  transition: width 0.3s;
+}
+.sildbar_collapsed {
+  width: 80px;
+}
+.sildbar_collapsedWrapper {
+  width: 80px;
+  text-align: center;
+  display: inline-block;
+}
+.logo {
+  width: 100%;
+  height: 50px;
+  color: red;
+  line-height: 50px;
+  display: flex;
+  justify-content: space-around;
+}
+.sildbar {
+  height: calc(100vh - 50px);
+}
