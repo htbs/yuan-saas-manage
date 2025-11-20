@@ -1,4 +1,4 @@
-/** @type {import('tailwindcss').Config} */
+// /** @type {import('tailwindcss').Config} */
 // const config = {
 //   darkMode: "class",
 //   content: [
@@ -59,6 +59,7 @@
 // export default config;
 
 /** @type {import('tailwindcss').Config} */
+
 const config = {
   // 配置需要扫描的文件路径（确保 Tailwind 能识别所有组件和页面）
   content: [

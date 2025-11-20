@@ -85,6 +85,7 @@ const SideBar: React.FC = () => {
   const toggleCollapsed = () => {
     setCollapsed(!collapsed);
   };
+
   return (
     <>
       <div

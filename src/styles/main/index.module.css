@@ -22,6 +22,7 @@
   text-align: center;
   display: inline-block;
 }
+
 .logo {
   width: 100%;
   height: 50px;
@@ -32,4 +33,12 @@
 }
 .sildbar {
   height: calc(100vh - 50px);
+}
+
+.sildbar :global(.ant-menu-item .anticon) {
+  margin-right: 10;
+}
+
+.sildbar :global(.ant-menu-submenu-title .anticon) {
+  margin-right: 10;
 }

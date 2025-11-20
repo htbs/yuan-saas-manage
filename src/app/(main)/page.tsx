@@ -10,8 +10,11 @@ const HomeHeader = () => {
       >
         数据看板
       </div>
+      <span className="text-4xl text-red-600">测试字体的大小</span>
       <div>
-        <Button type="primary">新增店铺</Button>
+        <Button type="primary" className="bg-red-400">
+          新增店铺
+        </Button>
       </div>
     </Flex>
   );

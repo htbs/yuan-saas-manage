@@ -6,9 +6,11 @@ import { StyleProvider } from "@ant-design/cssinjs";
 import { ConfigProvider, App } from "antd";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "@/styles/reset.css";
 import "@/styles/globals.css";
 import "@/styles/variables.css";
+import "@ant-design/v5-patch-for-react-19";
 
 const inter = Inter({ subsets: ["latin"] }); // 引入 Inter 字体
 
@@ -16,10 +18,14 @@ const inter = Inter({ subsets: ["latin"] }); // 引入 Inter 字体
 function AntdThemeProvider({ children }: { children: ReactNode }) {
   const { currentTheme } = useTheme();
   return (
-    <ConfigProvider theme={{ ...currentTheme, cssVar: true, hashed: false }}>
-      {/* <StyleProvider hashPriority="high">{children}</StyleProvider> */}
-      <App>{children}</App>
-    </ConfigProvider>
+    <StyleProvider layer>
+      <ConfigProvider theme={{ ...currentTheme, cssVar: true, hashed: false }}>
+        {/* <StyleProvider hashPriority="high">{children}</StyleProvider> */}
+        <App>
+          <AntdRegistry>{children}</AntdRegistry>
+        </App>
+      </ConfigProvider>
+    </StyleProvider>
   );
 }
 export default function RootLayout({ children }: { children: ReactNode }) {

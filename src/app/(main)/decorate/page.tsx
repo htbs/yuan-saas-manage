@@ -14,6 +14,7 @@ const Home = () => {
       {contextHolder}
       <div style={{ width: "100px", height: "100px" }} className="myRoundFull">
         店铺装修123
+        <Button className="bg-amber-300 font-bold text-3xl">测试按钮</Button>
       </div>
     </>
   );
