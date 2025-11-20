@@ -11,4 +11,7 @@
   --radius-lg: clamp(8px, 1.6vw, 16px);
   --radius-xl: clamp(12px, 2.4vw, 24px);
   --radius-full: 9999px;
+
+    /*  侧边导航栏顶部logo高度  */
+    --sidebar-logo-h: 40px;
 }
