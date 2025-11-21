@@ -1,11 +1,12 @@
+import "@ant-design/v5-patch-for-react-19";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "@ant-design/v5-patch-for-react-19";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "@/src/styles/reset.css";
 import "@/src/styles/variables.css";
 import "@/src/styles/globals.css";
-import SideBar from '@/src/components/layout/sideBar'
+import SideBar from "@/src/components/layout/sideBar";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -30,12 +31,10 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AntdRegistry>
-            <div className="w-full h-full flex">
-                <SideBar/>
-                <div className="flex-1">
-                    {children}
-                </div>
-            </div>
+          <div className="w-full h-full flex">
+            <SideBar />
+            <div className="flex-1">{children}</div>
+          </div>
         </AntdRegistry>
       </body>
     </html>

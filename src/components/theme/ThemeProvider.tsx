@@ -7,7 +7,7 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import { ThemeContextType } from "@/components/theme/type";
+import { ThemeContextType } from "@src/components/theme/type";
 import type { ThemeConfig } from "antd";
 import { lightTheme, darkTheme } from "@/lib/theme/themeConfig";
 
