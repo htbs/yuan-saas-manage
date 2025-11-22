@@ -5,7 +5,7 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "@/src/styles/reset.css";
 import "@/src/styles/variables.css";
 import "@/src/styles/globals.css";
-import SideBar from "@/src/components/layout/sideBar";
+import SideBar from "@src/components/layout/SideBar/sideBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,10 +31,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AntdRegistry>
-          <div className="w-full h-full flex">
-            <SideBar />
-            <div className="flex-1">{children}</div>
-          </div>
+            {children}
         </AntdRegistry>
       </body>
     </html>
