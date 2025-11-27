@@ -4,7 +4,7 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from "axios";
-import { Result } from "@/lib/request/type";
+import { Result } from "./type";
 import { message } from "antd";
 
 // 创建一个 Axios 实例

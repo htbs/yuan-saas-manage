@@ -1,0 +1,22 @@
+/* LoginForm.module.css */
+.login-form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+}
+
+.login-form__card {
+    width: 380px;
+    padding: 28px;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    background: var(--card-bg, #fff);
+}
+
+.login-form__title {
+    margin: 0 0 20px;
+    font-size: 20px;
+    text-align: center;
+    color: var(--text-primary, #111);
+}
