@@ -9,13 +9,42 @@ import type { LoginReqParams, LoginResInfo } from "./types";
 
 /**
  * 登录接口
- * 返回示例 { code: 200, data: { token, user }, message: '' }
- * 这里返回的是 LoginResInfo
+ * 返回示例 :
+{
+    "status": "",
+    "code": "",
+    "data": {
+        "accessToken": "",
+        "refreshToken": "",
+        "userType": "",
+        "userId": 0,
+        "username": "",
+        "avatar": ""
+    },
+    "traceId": "",
+    "message": "",
+    "timestamp": 0,
+    "debug": ""
+}
  */
 export async function loginApi(params: LoginReqParams): Promise<LoginResInfo> {
+    /**
+     * 
     const res = await request.post<{ code: number; data: LoginResInfo; message?: string }>(
         "/auth/login",
         params
     );
     return (res as any).data ?? (res as unknown as LoginResInfo);
+
+     */
+    return (
+        {
+            'accessToken': '123456',
+            'refreshToken': '123456',
+            'userType': 'USER',
+            'userId': '123456',
+            'username': 'ginger',
+            'avatar': 'http://www.baidu.com/img/flexible/logo/pc/peak-result.png',
+        } as LoginResInfo
+    );
 }

@@ -61,6 +61,9 @@ service.interceptors.response.use(
         case 500:
           message.error("服务器内部错误");
           break;
+        case 404:
+          message.error("请求资源未找到");
+          break;
         default:
           message.error(res.message || "请求失败");
       }

@@ -1,0 +1,21 @@
+/* form 宽 */
+.login-form {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* form 整体 */
+.login-form__card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 28px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* form 标题 */
+.login-form__title {
+  margin: 0 0 18px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+}
