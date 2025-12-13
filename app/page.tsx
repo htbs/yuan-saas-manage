@@ -10,11 +10,12 @@ export default function RootPage() {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.replace("/home");
-    } else {
-      router.replace("/login");
-    }
+    console.log("isAuthenticated:------------ ", isAuthenticated);
+    // if (isAuthenticated) {
+    //   router.replace("/home");
+    // } else {
+    //   router.replace("/login");
+    // }
   }, [isAuthenticated, router]);
 
   return null;

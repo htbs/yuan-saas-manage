@@ -9,27 +9,51 @@ import axios, {
 import { Result } from "./type";
 import { message } from "antd";
 import Router from "next/router";
-import type { IncomingMessage } from "http";
+import { StorageAuth } from "@/src/types/constant";
+import {
+  readTokenFromStorages,
+  saveAuthToStorage,
+  clearAuthFromStorage,
+} from "@/src/lib/utils/authUtil";
 
-// 创建一个 Axios 实例
-const service: AxiosInstance = axios.create({
-  // 根据环境设置 baseURL
+/** 刷新 token 的纯函数 */
+interface RefareshTokenResult {
+  accessToken: string;
+  refreshToken: string;
+}
+
+// 公共配置
+const DEFAULT_CONFIG = {
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  timeout: 10000, // 请求超时时间
+  timeout: 10_000,
   headers: { "Content-Type": "application/json;charset=utf-8" },
-});
+};
+
+// 主实例：带拦截
+export const service: AxiosInstance = axios.create(DEFAULT_CONFIG);
+
+// 干净实例：专用于刷新 token，无拦截
+export const refreshAxios: AxiosInstance = axios.create(DEFAULT_CONFIG);
+
+// 不需要 token 的接口
+const NO_TOKEN_WHITE_LIST: string[] = ["/auth/login"];
 
 /* ---------- 2. 工具函数 ---------- */
 let loadingCount = 0;
-// 展示loading
+// 展示 loading
 const showLoading = () => {
-  loadingCount === 0 && message.loading({ content: "加载中…", key: "loading" });
+  if (loadingCount === 0) {
+    message.loading({ content: "加载中…", key: "loading" });
+  }
   loadingCount++;
 };
+
 // 隐藏 loading
 const hideLoading = () => {
   loadingCount = Math.max(loadingCount - 1, 0);
-  loadingCount === 0 && message.destroy("loading");
+  if (loadingCount === 0) {
+    message.destroy("loading");
+  }
 };
 
 // 错误处理
@@ -38,7 +62,6 @@ const handleError = (code: string, msg?: string) => {
   switch (code) {
     case "401":
       errorMessage = "登录已失效";
-      logout();
       break;
     case "404":
       errorMessage = "接口不存在";
@@ -58,16 +81,25 @@ const handleError = (code: string, msg?: string) => {
   }
 };
 
-/** 获取 token：CSR 用 localStorage；SSR 用 cookie */
-const getToken = (req?: IncomingMessage): string | null => {
-  if (typeof window === "undefined") {
-    // SSR 场景，从请求头 cookie 里解析
-    const cookie = req?.headers?.cookie || "";
-    const match = cookie.match(/(?:^|\s)authToken=([^;]*)/);
-    return match ? decodeURIComponent(match[1]) : null;
-  }
-  return localStorage.getItem("authToken");
-};
+let isRefreshing = false; // 防止重复刷新
+let failedQueue: Array<{
+  resolve: (value?: AxiosResponse) => void;
+  reject: (reason?: unknown) => void;
+}> = [];
+
+/* 刷新 token 的纯函数 */
+async function refreshToken(): Promise<RefareshTokenResult> {
+  const auth: StorageAuth = readTokenFromStorages();
+  const refresh = auth.refareshToken;
+  if (!refresh) throw new Error("无刷新凭证");
+
+  // 这里用 axios 实例发刷新请求（不要走拦截器避免死循环）
+  const { data } = await refreshAxios.post<
+    Result<{ result: RefareshTokenResult }>
+  >("/auth/refresh", { refreshToken: refresh });
+
+  return data.data.result;
+}
 
 /** 清除登录态并跳转 */
 const logout = () => {
@@ -83,10 +115,13 @@ const logout = () => {
 service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     showLoading();
-
-    const token = getToken(config.headers?.req); // SSR 时把 req 带过来
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-
+    const url = config.url ?? "";
+    console.log("请求地址：", url);
+    // 白名单直接放过,不增加token
+    if (NO_TOKEN_WHITE_LIST.some((p) => url.startsWith(p))) return config;
+    const auth: StorageAuth = readTokenFromStorages();
+    if (auth && auth.token) config.headers.Authorization = `${auth.token}`;
+    console.log("请求数据：", config.headers);
     return config;
   },
   (error: AxiosError) => {
@@ -99,6 +134,7 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   (res: AxiosResponse<Result>) => {
     hideLoading();
+    console.log("响应数据：", res.data);
     // HTTP 成功，但业务失败
     if (res.data.code !== "0000") {
       handleError(res.data.code, res.data.message);
@@ -107,11 +143,54 @@ service.interceptors.response.use(
     // 真正成功
     return res;
   },
-  (err: AxiosError<Result>) => {
+  async (err: AxiosError<Result>) => {
     hideLoading();
+    const originalRequest = err.config as AxiosRequestConfig & {
+      _retry?: boolean;
+    };
     const status = err.response?.status;
+
+    // 只处理 401 且未重试过
+    if (status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // 已经在刷新，把当前请求挂起
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(() => service(originalRequest));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const newAuth: RefareshTokenResult = await refreshToken();
+
+        saveAuthToStorage(newAuth.accessToken, newAuth.refreshToken, true); // 落盘
+        // 更新 axios 默认头
+        service.defaults.headers.common[
+          "Authorization"
+        ] = `${newAuth.accessToken}`;
+        // 把队列里所有因 401 挂起的请求重新发
+        failedQueue.forEach(({ resolve }) => resolve());
+        failedQueue = [];
+        // 重试原请求
+        return service(originalRequest);
+      } catch (refreshErr) {
+        console.log("响应错误---=====--：", err);
+        // 刷新失败：清 token、跳登录、抛错
+        clearAuthFromStorage();
+        delete service.defaults.headers.common["Authorization"];
+        failedQueue.forEach(({ reject }) => reject(refreshErr));
+        failedQueue = [];
+        Router.replace("/login");
+        return Promise.reject(refreshErr);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+    console.log("响应错误-----：", err);
+    // 其它错误继续抛
     handleError(String(status));
-    // if (status === 401) logout();
     return Promise.reject(err);
   }
 );
@@ -155,130 +234,3 @@ const request = {
 };
 
 export default request;
-
-// 使用示例
-// import request, { unwrap } from '@/utils/http';
-
-// // 1. 直接拿 Result
-// request.get<User>('/user').then((res) => {
-//   if (res.code === 200) console.log(res.data);
-// });
-
-// // 2. 链式 unwrap（更简洁）
-// request.post<LoginVO>('/login', form).then(unwrap).then((vo) => {
-//   Router.push('/dashboard');
-// });
-
-// // --- 请求拦截器 ---
-// service.interceptors.request.use(
-//   (config: InternalAxiosRequestConfig) => {
-//     // 1. 添加 loading 状态
-
-//     // 2. 添加 token 到请求头
-
-//     // 注意：在 Next.js 中，客户端渲染时才能访问 localStorage
-//     if (typeof window !== "undefined") {
-//       const token = localStorage.getItem("authToken");
-//       if (token) {
-//         config.headers.Authorization = `Bearer ${token}`;
-//       }
-//     }
-//     return config;
-//   },
-//   (error) => {
-//     // 处理请求错误
-//     return Promise.reject(error);
-//   }
-// );
-
-// // --- 响应拦截器 ---
-// service.interceptors.response.use(
-//   (response: AxiosResponse) => {
-//     // 1. 移除 loading 状态
-
-//     const res: Result = response.data;
-//     // 如果 code 不是 200 (假设 200 为成功状态)，则判断为错误
-//     if (res.code !== 200) {
-//       // 处理常见的错误状态码
-//       switch (res.code) {
-//         case 401:
-//           // 例如：Token 过期或未授权，跳转到登录页
-//           // 注意：在 Next.js 客户端路由跳转
-//           if (typeof window !== "undefined") {
-//             message.error("认证失败或已过期，请重新登录");
-//             // window.location.href = '/login';
-//           }
-//           break;
-//         case 403:
-//           message.error("没有权限访问");
-//           break;
-//         case 500:
-//           message.error("服务器内部错误");
-//           break;
-//         case 404:
-//           message.error("请求资源未找到");
-//           break;
-//         default:
-//           message.error(res.message || "请求失败");
-//       }
-//       return Promise.reject(new Error(res.message || "Error"));
-//     } else {
-//       // 成功，直接返回业务数据
-//       return response;
-//     }
-//   },
-//   (error) => {
-//     // 2. 移除 loading 状态
-
-//     // 处理网络错误
-//     let msg = "";
-//     if (error && error.response) {
-//       switch (error.response.status) {
-//         case 401:
-//           msg = "未授权，请登录";
-//           // 跳转逻辑
-//           break;
-//         case 403:
-//           msg = "拒绝访问";
-//           break;
-//         // 其他错误状态码
-//         default:
-//           msg = "请求失败";
-//       }
-//     } else {
-//       msg = "网络连接异常！";
-//     }
-
-//     message.error(msg);
-//     return Promise.reject(error);
-//   }
-// );
-
-// // --- 封装通用请求方法 ---
-// const request = {
-//   get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
-//     return service.get(url, config);
-//   },
-
-//   post<T = unknown>(
-//     url: string,
-//     data?: object,
-//     config?: AxiosRequestConfig
-//   ): Promise<T> {
-//     return service.post(url, data, config);
-//   },
-
-//   put<T = unknown>(
-//     url: string,
-//     data?: object,
-//     config?: AxiosRequestConfig
-//   ): Promise<T> {
-//     return service.put(url, data, config);
-//   },
-
-//   delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
-//     return service.delete(url, config);
-//   },
-// };
-
-// export default request;

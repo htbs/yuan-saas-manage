@@ -1,7 +1,9 @@
 import React, { useCallback, useState } from "react";
 import { Form, Input, Button, Checkbox, message } from "antd";
+import { UserTypeEnum, LoginTypeEnum } from "@/src/types/constant";
+import { hashPasswordMD5UpperCase } from "@/src/lib/utils/crypto";
 import styles from "./LoginForm.module.css";
-import type { LoginFormVals, LoginFormProps } from "../type";
+import type { LoginFormVals, LoginFormProps, LoginReqParams } from "../type";
 
 /**
  * LoginForm: 纯 UI + 校验。onSubmit 由上层处理业务（例如调用 loginApi）。
@@ -26,8 +28,14 @@ export function LoginForm({ onSubmit, loading = false }: LoginFormProps) {
       setSubmitting(true);
 
       try {
+        const loginParams: LoginReqParams = {
+          username: username,
+          password: hashPasswordMD5UpperCase(password),
+          userType: UserTypeEnum.SYSTEM_USER,
+          loginType: LoginTypeEnum.USERNAME_PASSWORD,
+        };
         // 登录 : 调用传入的 onSubmit 方法
-        await onSubmit({ username, password, remember });
+        await onSubmit({ ...loginParams, remember });
       } catch (err: unknown) {
         // 登录失败 :
         const text =

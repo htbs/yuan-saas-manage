@@ -4,7 +4,6 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "@/src/styles/reset.css";
 import "@/src/styles/variables.css";
 import "@/src/styles/globals.css";
-import SideBar from "@src/components/layout/SideBar/sideBar";
 import Providers from "./providers";
 
 const geistSans = Geist({

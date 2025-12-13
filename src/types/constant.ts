@@ -1,3 +1,12 @@
+// 存储到localstorage中的token的key
+export const STORAGE_AUTH = "auth";
+
+// 存储到localstorage中的token的对象key，auth对应StorageAuth
+export interface StorageAuth {
+  token: string | null;
+  refareshToken: string | null;
+}
+
 // 用户类型
 export enum UserTypeEnum {
   SYSTEM_USER = "SYSTEM_USER", // 系统用户
