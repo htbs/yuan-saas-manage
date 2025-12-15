@@ -61,7 +61,7 @@ const handleError = (code: string, msg?: string) => {
   let errorMessage = msg || "未知异常";
   switch (code) {
     case "401":
-      errorMessage = "认证已失效";
+      errorMessage = errorMessage || "认证已失效";
       break;
     case "404":
       errorMessage = "接口不存在";
@@ -75,6 +75,7 @@ const handleError = (code: string, msg?: string) => {
     default:
       break;
   }
+  console.error(code, msg);
   // 尽在客户端环境提示
   if (typeof window !== "undefined") {
     message.error(errorMessage);
@@ -119,6 +120,7 @@ service.interceptors.request.use(
     // 白名单直接放过,不增加token
     if (NO_TOKEN_WHITE_LIST.some((p) => url.startsWith(p))) return config;
     const auth: StorageAuth = readTokenFromStorages();
+    console.log("auth:", auth);
     if (auth && auth.token) config.headers.Authorization = `${auth.token}`;
     return config;
   },
@@ -146,6 +148,7 @@ service.interceptors.response.use(
       _retry?: boolean;
     };
     const status = err.response?.status;
+    console.log("err:", err);
     // 只处理 401 且未重试过
     if (
       status === 401 &&
@@ -173,6 +176,7 @@ service.interceptors.response.use(
         // 把队列里所有因 401 挂起的请求重新发
         failedQueue.forEach(({ resolve }) => resolve());
         failedQueue = [];
+        console.log("newAuth:", newAuth);
         // 重试原请求
         return service(originalRequest);
       } catch (refreshErr) {
@@ -183,13 +187,13 @@ service.interceptors.response.use(
         failedQueue = [];
         handleError(String("401"));
         Router.replace("/login");
-        return Promise.reject(refreshErr);
+        // return Promise.reject(refreshErr);
       } finally {
         isRefreshing = false;
       }
     }
     // 其它错误继续抛
-    handleError(String(status));
+    handleError(String(status), err.response?.data.message);
     return Promise.reject(err);
   }
 );
@@ -200,12 +204,57 @@ export type UnwrapResult<T> = T extends Result<infer D> ? D : never;
 /** 把 Result<T> 转成 T，方便链式调用 */
 export const unwrap = <T>(res: Result<T>): T => res.data;
 
+/**
+ * 过滤掉对象中值为 null, undefined 或空字符串的属性。
+ * @param obj 待过滤的对象
+ * @returns 过滤后的新对象
+ */
+const cleanParams = <T extends object>(obj: T): Partial<T> => {
+  if (!obj) return {} as Partial<T>;
+
+  const cleaned: Partial<T> = {};
+
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const value = obj[key];
+
+      // 检查值是否为 null, undefined, 或空字符串
+      if (value !== null && value !== undefined && value !== "") {
+        cleaned[key] = value;
+      }
+    }
+  }
+  return cleaned;
+};
+
 const request = {
   get<R = unknown>(
     url: string,
     config?: AxiosRequestConfig
   ): Promise<Result<R>> {
     return service.get<Result<R>>(url, config).then((r) => r.data);
+  },
+
+  /**
+   * 专用于 GET 请求，接收一个参数对象，自动放入 config.params 中。
+   * @param url 请求地址
+   * @param params 查询参数对象
+   * @param config 可选的 Axios 配置
+   */
+  getQuery<R = unknown, P extends object = Record<string, unknown>>(
+    url: string,
+    params: P, // 明确的参数对象，不再是可选的 config
+    config?: AxiosRequestConfig
+  ): Promise<Result<R>> {
+    const cleanedParams = cleanParams(params);
+    // 构造最终的 AxiosRequestConfig 对象
+    const finalConfig: AxiosRequestConfig = {
+      ...config,
+      // 核心：将传入的 params 对象赋值给 config.params
+      params: cleanedParams,
+    };
+
+    return service.get<Result<R>>(url, finalConfig).then((r) => r.data);
   },
 
   post<R = unknown, D = unknown>(

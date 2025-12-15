@@ -21,3 +21,20 @@ export enum LoginTypeEnum {
   WECHAT_MP_SUBSCRIPTION = "WECHAT_MP_SUBSCRIPTION", // 微信公众号订阅
   SMS = "SMS", // 短信
 }
+
+// 分页元数据
+export interface PageMeta {
+  number: number; // 当前页码
+  size: number; // 每页条数
+  totalPages: number;
+  totalElements: number;
+  isFirst: boolean;
+  isLast: boolean;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
+// 带内容的泛型分页
+export interface Page<T> extends PageMeta {
+  content: T[];
+}

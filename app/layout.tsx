@@ -4,6 +4,8 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "@/src/styles/reset.css";
 import "@/src/styles/variables.css";
 import "@/src/styles/globals.css";
+import zhCN from "antd/locale/zh_CN";
+import "dayjs/locale/zh-cn";
 import Providers from "./providers";
 
 const geistSans = Geist({
@@ -27,13 +29,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="zhCN">
       <body>
         <AntdRegistry>
-          <Providers>{children}</Providers>
+          <ConfigProvider locale={zhCN}>
+            <Providers>{children}</Providers>
+          </ConfigProvider>
         </AntdRegistry>
       </body>
     </html>
   );
 }
 import React from "react";
+import { ConfigProvider } from "antd";

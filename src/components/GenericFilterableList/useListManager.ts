@@ -1,0 +1,125 @@
+// src/hooks/useListManager.ts
+
+import { useState, useEffect, useCallback } from "react";
+import { FormInstance, PaginationProps } from "antd";
+import { GenericListProps } from "./types";
+
+// ------------------------------------
+// 1. Hook 返回值类型
+// ------------------------------------
+interface ListManagerResult<T extends object> {
+  data: T[];
+  loading: boolean;
+  pagination: { current: number; pageSize: number; total: number };
+  handleTableChange: (newPagination: PaginationProps) => void;
+  handleSearch: () => void;
+  handleReset: () => void;
+}
+
+// ------------------------------------
+// 2. 自定义 Hook
+// ------------------------------------
+/**
+ * 负责管理列表的数据请求、分页、加载状态和搜索/重置逻辑。
+ * @param fetcher 数据请求函数
+ * @param form 搜索表单实例
+ */
+export const useListManager = <
+  T extends object,
+  F extends object = Record<string, unknown>
+>(
+  fetcher: GenericListProps<T, F>["fetcher"],
+  form: FormInstance<F>
+): ListManagerResult<T> => {
+  const [data, setData] = useState<T[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
+
+  // ------------------------------------
+  // A. 数据获取函数 (核心)
+  // ------------------------------------
+  const fetchData = useCallback(async () => {
+    // 1. 获取当前的筛选条件
+    const filterValues = form.getFieldsValue();
+
+    setLoading(true);
+    try {
+      // 2. 调用外部传入的 fetcher 函数
+      const result = await fetcher({
+        ...filterValues,
+        pageNo: pagination.current,
+        pageSize: pagination.pageSize,
+      });
+
+      setData(result.list);
+      setPagination((prev) => ({ ...prev, total: result.total }));
+    } catch (error) {
+      console.error("ListManager: 数据加载失败", error);
+      setData([]);
+      setPagination((prev) => ({ ...prev, total: 0 }));
+    } finally {
+      setLoading(false);
+    }
+  }, [form, pagination.current, pagination.pageSize, fetcher]); // 依赖项
+
+  // ------------------------------------
+  // B. 生命周期：自动加载/刷新数据
+  // ------------------------------------
+  useEffect(() => {
+    // 监听分页状态或 fetcher 变化，自动重新加载数据
+    fetchData();
+  }, [fetchData]);
+
+  // ------------------------------------
+  // C. 事件处理函数
+  // ------------------------------------
+
+  // 处理 Table 的分页/排序/过滤变化
+  const handleTableChange = (newPagination: PaginationProps) => {
+    // 仅更新分页状态，依赖项变化会触发 fetchData
+    setPagination((prev) => ({
+      ...prev,
+      current: newPagination.current || 1,
+      pageSize: newPagination.pageSize || 10,
+    }));
+  };
+
+  // 处理搜索按钮点击：重置页码到 1
+  const handleSearch = () => {
+    // 仅更新 current，依赖项变化会触发 fetchData
+
+    // setPagination((prev) => ({ ...prev, current: 1 }));
+    // 1. 获取当前页码
+    const currentPage = pagination.current;
+    if (currentPage !== 1) {
+      // 如果当前不在第一页，更新状态到 1，这会隐式触发 fetchData
+      setPagination((prev) => ({ ...prev, current: 1 }));
+    } else {
+      // 状态更新不会发生，我们需要强制执行 fetchData
+      fetchData();
+    }
+  };
+
+  // 处理重置按钮点击：重置表单和页码
+  const handleReset = () => {
+    form.resetFields();
+    // 强制重置分页状态
+    setPagination({ current: 1, pageSize: 10, total: 0 });
+  };
+
+  // ------------------------------------
+  // D. 导出状态和方法
+  // ------------------------------------
+  return {
+    data,
+    loading,
+    pagination,
+    handleTableChange,
+    handleSearch,
+    handleReset,
+  };
+};
