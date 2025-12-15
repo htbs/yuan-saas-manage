@@ -107,9 +107,9 @@ export function LoginForm({ onSubmit, loading = false }: LoginFormProps) {
           </Form.Item>
 
           {/* 记住我 */}
-          <Form.Item name="remember" valuePropName="checked">
+          {/* <Form.Item name="remember" valuePropName="checked">
             <Checkbox>记住我</Checkbox>
-          </Form.Item>
+          </Form.Item> */}
 
           {/* 提交按钮 */}
           <Form.Item>

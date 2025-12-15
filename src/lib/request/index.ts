@@ -61,7 +61,7 @@ const handleError = (code: string, msg?: string) => {
   let errorMessage = msg || "未知异常";
   switch (code) {
     case "401":
-      errorMessage = "登录已失效";
+      errorMessage = "认证已失效";
       break;
     case "404":
       errorMessage = "接口不存在";
@@ -116,12 +116,10 @@ service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     showLoading();
     const url = config.url ?? "";
-    console.log("请求地址：", url);
     // 白名单直接放过,不增加token
     if (NO_TOKEN_WHITE_LIST.some((p) => url.startsWith(p))) return config;
     const auth: StorageAuth = readTokenFromStorages();
     if (auth && auth.token) config.headers.Authorization = `${auth.token}`;
-    console.log("请求数据：", config.headers);
     return config;
   },
   (error: AxiosError) => {
@@ -134,7 +132,6 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   (res: AxiosResponse<Result>) => {
     hideLoading();
-    console.log("响应数据：", res.data);
     // HTTP 成功，但业务失败
     if (res.data.code !== "0000") {
       handleError(res.data.code, res.data.message);
@@ -149,9 +146,12 @@ service.interceptors.response.use(
       _retry?: boolean;
     };
     const status = err.response?.status;
-
     // 只处理 401 且未重试过
-    if (status === 401 && !originalRequest._retry) {
+    if (
+      status === 401 &&
+      err.response?.data.code === "AUTH_0004" &&
+      !originalRequest._retry
+    ) {
       if (isRefreshing) {
         // 已经在刷新，把当前请求挂起
         return new Promise((resolve, reject) => {
@@ -165,7 +165,7 @@ service.interceptors.response.use(
       try {
         const newAuth: RefareshTokenResult = await refreshToken();
 
-        saveAuthToStorage(newAuth.accessToken, newAuth.refreshToken, true); // 落盘
+        saveAuthToStorage(newAuth.accessToken, newAuth.refreshToken); // 落盘
         // 更新 axios 默认头
         service.defaults.headers.common[
           "Authorization"
@@ -176,19 +176,18 @@ service.interceptors.response.use(
         // 重试原请求
         return service(originalRequest);
       } catch (refreshErr) {
-        console.log("响应错误---=====--：", err);
         // 刷新失败：清 token、跳登录、抛错
         clearAuthFromStorage();
         delete service.defaults.headers.common["Authorization"];
         failedQueue.forEach(({ reject }) => reject(refreshErr));
         failedQueue = [];
+        handleError(String("401"));
         Router.replace("/login");
         return Promise.reject(refreshErr);
       } finally {
         isRefreshing = false;
       }
     }
-    console.log("响应错误-----：", err);
     // 其它错误继续抛
     handleError(String(status));
     return Promise.reject(err);

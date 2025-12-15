@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return Promise.reject(new Error("未返回token"));
       }
       // 登录成功: 保存 token / user 到 storage 和 state :
-      saveAuthToStorage(tokenResp, res.refreshToken, remember);
+      saveAuthToStorage(tokenResp, res.refreshToken);
 
       setToken(tokenResp);
       return res;

@@ -20,8 +20,8 @@ const menuList: MenuItemType[] = [
     icon: <MailOutlined />,
   },
   {
-    key: "decorate",
-    label: "店铺装修",
+    key: "merchant",
+    label: "商家管理",
     icon: <AppstoreOutlined />,
   },
   {
