@@ -38,3 +38,20 @@ export interface PageMeta {
 export interface Page<T> extends PageMeta {
   content: T[];
 }
+
+// 分页参数
+export interface PageParams {
+  pageNo: number; // 当前页码
+  pageSize: number; // 每页条数
+}
+
+/**
+ * 基础结果
+ */
+export interface BaseResult {
+  id: string; // 主键ID
+  createBy: string; // 创建人
+  createAt: string; // 创建时间
+  updateBy: string; // 修改人
+  updateAt: string; // 修改时间
+}

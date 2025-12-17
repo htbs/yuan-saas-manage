@@ -95,11 +95,14 @@ async function refreshToken(): Promise<RefareshTokenResult> {
   if (!refresh) throw new Error("无刷新凭证");
 
   // 这里用 axios 实例发刷新请求（不要走拦截器避免死循环）
-  const { data } = await refreshAxios.post<
-    Result<{ result: RefareshTokenResult }>
-  >("/auth/refresh", { refreshToken: refresh });
-
-  return data.data.result;
+  const { data } = await refreshAxios.post<Result<RefareshTokenResult>>(
+    "/auth/refresh1",
+    { refreshToken: refresh }
+  );
+  return {
+    accessToken: data.data.accessToken,
+    refreshToken: data.data.refreshToken,
+  };
 }
 
 /** 清除登录态并跳转 */
@@ -120,7 +123,6 @@ service.interceptors.request.use(
     // 白名单直接放过,不增加token
     if (NO_TOKEN_WHITE_LIST.some((p) => url.startsWith(p))) return config;
     const auth: StorageAuth = readTokenFromStorages();
-    console.log("auth:", auth);
     if (auth && auth.token) config.headers.Authorization = `${auth.token}`;
     return config;
   },
@@ -139,6 +141,7 @@ service.interceptors.response.use(
       handleError(res.data.code, res.data.message);
       return Promise.reject(res.data);
     }
+
     // 真正成功
     return res;
   },
@@ -148,7 +151,6 @@ service.interceptors.response.use(
       _retry?: boolean;
     };
     const status = err.response?.status;
-    console.log("err:", err);
     // 只处理 401 且未重试过
     if (
       status === 401 &&
@@ -161,7 +163,6 @@ service.interceptors.response.use(
           failedQueue.push({ resolve, reject });
         }).then(() => service(originalRequest));
       }
-
       originalRequest._retry = true;
       isRefreshing = true;
 
@@ -176,18 +177,22 @@ service.interceptors.response.use(
         // 把队列里所有因 401 挂起的请求重新发
         failedQueue.forEach(({ resolve }) => resolve());
         failedQueue = [];
-        console.log("newAuth:", newAuth);
         // 重试原请求
         return service(originalRequest);
       } catch (refreshErr) {
         // 刷新失败：清 token、跳登录、抛错
-        clearAuthFromStorage();
+        // clearAuthFromStorage();
         delete service.defaults.headers.common["Authorization"];
         failedQueue.forEach(({ reject }) => reject(refreshErr));
         failedQueue = [];
         handleError(String("401"));
-        Router.replace("/login");
-        // return Promise.reject(refreshErr);
+        console.log("refreshErr:", refreshErr);
+        if (typeof window !== "undefined") {
+          console.error("认证过期，正在跳转登录...");
+          // 2. 优先尝试单例跳转，失败则使用 location
+          window.location.replace("/login");
+        }
+        return Promise.reject(refreshErr);
       } finally {
         isRefreshing = false;
       }

@@ -1,6 +1,11 @@
 import React from "react";
-import { Form, Input, Select, Button, Space, DatePicker } from "antd";
-import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
+import { Form, Input, Select, Button, Space, DatePicker, Row, Col } from "antd";
+import {
+  SearchOutlined,
+  ReloadOutlined,
+  UpOutlined,
+  DownOutlined,
+} from "@ant-design/icons";
 import { FormInstance } from "antd/es/form";
 import { FormFieldConfig } from "./types";
 
@@ -13,7 +18,6 @@ interface SearchFormProps<F extends object = Record<string, unknown>> {
 
 // 辅助函数
 const renderFormField = (field: FormFieldConfig) => {
-  // ... 保持 renderFormField 逻辑不变 ...
   // 1. 构造基础的 placeholder 字符串 (仍然是 string)
   const basePlaceholder =
     field.placeholder ||
@@ -64,36 +68,74 @@ const SearchForm = <F extends object>({
   onSearch,
   onReset,
 }: SearchFormProps<F>) => {
+  // 状态管理：控制是否展开更多筛选
+  const [expand, setExpand] = React.useState(false);
+
+  //  关键常量：每行显示 4 个字段 (span=6)，因此两行为 8 个字段
+  const fieldsPerRow = 4;
+  const collapsibleThreshold = fieldsPerRow * 2;
+
+  //  判断是否需要显示“更多筛选”按钮
+  const showCollapseButton = searchFields.length > collapsibleThreshold;
+
+  // 修正样式以解决边距问题
+  const rowGutter: [number, number] = [24, 8]; // [水平间距, 垂直间距]
+
   return (
     <Form
       form={form}
-      layout="inline"
       onFinish={onSearch} // 提交时调用 onSearch
-      style={{ marginBottom: 20 }}
+      style={{ padding: 24 }}
     >
-      {/* 动态渲染表单项 */}
-      {searchFields.map((field) => (
-        <Form.Item
-          key={field.key}
-          name={field.key}
-          label={field.label}
-          rules={field.rules}
-        >
-          {renderFormField(field)}
-        </Form.Item>
-      ))}
+      <Row gutter={rowGutter}>
+        {/* 动态渲染表单项 */}
+        {searchFields.map((field, index) => {
+          // 确定是否隐藏：如果索引大于阈值且未展开，则隐藏
+          const isHidden = index >= collapsibleThreshold && !expand;
 
-      {/* 操作按钮 */}
-      <Form.Item>
-        <Space>
-          <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
-            查询
-          </Button>
-          <Button onClick={onReset} icon={<ReloadOutlined />}>
-            重置
-          </Button>
-        </Space>
-      </Form.Item>
+          return (
+            <Col
+              span={6}
+              key={field.key}
+              // 使用 style 隐藏，同时保持布局一致性（可选，但更清晰）
+              style={{ display: isHidden ? "none" : "block" }}
+            >
+              <Form.Item
+                name={field.key}
+                label={field.label}
+                rules={field.rules}
+              >
+                {renderFormField(field)}
+              </Form.Item>
+            </Col>
+          );
+        })}
+
+        <Col span={6}>
+          <Form.Item>
+            <Space size="middle">
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<SearchOutlined />}
+              >
+                查询
+              </Button>
+              <Button onClick={onReset} icon={<ReloadOutlined />}>
+                重置
+              </Button>
+
+              {/* 更多/收起按钮 (仅在需要时显示) */}
+              {showCollapseButton && (
+                <a onClick={() => setExpand(!expand)}>
+                  {expand ? "收起" : "展开"}
+                  {expand ? <UpOutlined /> : <DownOutlined />}
+                </a>
+              )}
+            </Space>
+          </Form.Item>
+        </Col>
+      </Row>
     </Form>
   );
 };

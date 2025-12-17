@@ -54,6 +54,17 @@ const menuList: MenuItemType[] = [
       },
     ],
   },
+  {
+    key: "sysManage",
+    label: "系统管理",
+    icon: <SettingOutlined />,
+    children: [
+      {
+        key: "sysUserManage",
+        label: "用户管理",
+      },
+    ],
+  },
 ];
 
 const styles: MenuProps["styles"] = {

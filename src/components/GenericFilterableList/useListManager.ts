@@ -1,24 +1,17 @@
-// src/hooks/useListManager.ts
-
 import { useState, useEffect, useCallback } from "react";
 import { FormInstance, PaginationProps } from "antd";
 import { GenericListProps } from "./types";
 
-// ------------------------------------
-// 1. Hook 返回值类型
-// ------------------------------------
 interface ListManagerResult<T extends object> {
   data: T[];
   loading: boolean;
   pagination: { current: number; pageSize: number; total: number };
   handleTableChange: (newPagination: PaginationProps) => void;
-  handleSearch: () => void;
-  handleReset: () => void;
+  handleSearch: () => void; // 添加 handleSearch 方法 用于搜索
+  handleReset: () => void; // 添加 handleReset 方法 用于重置
+  refetch: () => void; // 添加 refetch 方法 用于刷新列表
 }
 
-// ------------------------------------
-// 2. 自定义 Hook
-// ------------------------------------
 /**
  * 负责管理列表的数据请求、分页、加载状态和搜索/重置逻辑。
  * @param fetcher 数据请求函数
@@ -39,9 +32,7 @@ export const useListManager = <
     total: 0,
   });
 
-  // ------------------------------------
-  // A. 数据获取函数 (核心)
-  // ------------------------------------
+  //  数据获取函数
   const fetchData = useCallback(async () => {
     // 1. 获取当前的筛选条件
     const filterValues = form.getFieldsValue();
@@ -57,26 +48,24 @@ export const useListManager = <
 
       setData(result.list);
       setPagination((prev) => ({ ...prev, total: result.total }));
-    } catch (error) {
-      console.error("ListManager: 数据加载失败", error);
+    } catch {
       setData([]);
       setPagination((prev) => ({ ...prev, total: 0 }));
     } finally {
       setLoading(false);
     }
-  }, [form, pagination.current, pagination.pageSize, fetcher]); // 依赖项
+  }, [form, pagination.current, pagination.pageSize, fetcher]); // 依赖项 这里不要改 改了就死循环了
 
-  // ------------------------------------
-  // B. 生命周期：自动加载/刷新数据
-  // ------------------------------------
+  const refetch = useCallback(() => {
+    // 仅更新分页状态，依赖项变化会触发 fetchData
+    fetchData();
+  }, [fetchData]);
+
+  //  生命周期：自动加载/刷新数据
   useEffect(() => {
     // 监听分页状态或 fetcher 变化，自动重新加载数据
     fetchData();
   }, [fetchData]);
-
-  // ------------------------------------
-  // C. 事件处理函数
-  // ------------------------------------
 
   // 处理 Table 的分页/排序/过滤变化
   const handleTableChange = (newPagination: PaginationProps) => {
@@ -111,9 +100,7 @@ export const useListManager = <
     setPagination({ current: 1, pageSize: 10, total: 0 });
   };
 
-  // ------------------------------------
-  // D. 导出状态和方法
-  // ------------------------------------
+  // 导出状态和方法
   return {
     data,
     loading,
@@ -121,5 +108,6 @@ export const useListManager = <
     handleTableChange,
     handleSearch,
     handleReset,
+    refetch,
   };
 };

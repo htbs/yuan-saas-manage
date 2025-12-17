@@ -1,5 +1,6 @@
 import React from "react";
 import { Table, Form, Card } from "antd";
+import { ColumnType } from "antd/es/table";
 import { GenericListProps } from "./types";
 import { useListManager } from "./useListManager";
 import SearchForm from "./SearchForm";
@@ -12,6 +13,8 @@ const GenericFilterableList = <
   columns,
   searchFields,
   fetcher,
+  showIndexColumn = false, // 默认不显示序列列
+  onRefetch,
 }: GenericListProps<T, F>) => {
   // 1. 初始化表单实例
   const [form] = Form.useForm<F>();
@@ -24,7 +27,31 @@ const GenericFilterableList = <
     handleTableChange,
     handleSearch,
     handleReset,
+    refetch,
   } = useListManager<T, F>(fetcher, form);
+
+  // 使用 useEffect 将 refetch 函数通过 onRefetch 传递给父组件
+  React.useEffect(() => {
+    if (onRefetch) {
+      onRefetch(refetch);
+    }
+  }, [onRefetch, refetch]); // 依赖项是 onRefetch 和 refetch
+
+  // 新增序号列
+  const serialNumberColumn: ColumnType<T> = {
+    title: "序号",
+    width: 80,
+    align: "center",
+    // 核心计算逻辑： (当前页码 - 1) * 每页大小 + 当前行索引 + 1
+    render: (_, __, index) => {
+      return (pagination.current - 1) * pagination.pageSize + index + 1;
+    },
+  };
+
+  // 组合序号列与数据列
+  const finalColumns = showIndexColumn
+    ? [serialNumberColumn, ...columns]
+    : columns;
 
   return (
     <Card>
@@ -35,13 +62,12 @@ const GenericFilterableList = <
         onSearch={handleSearch}
         onReset={handleReset}
       />
-
       {/* 通用表格 */}
       <Table
-        columns={columns}
+        columns={finalColumns}
         dataSource={data}
         rowKey="id"
-        loading={loading}
+        // loading={loading}
         pagination={{
           current: pagination.current,
           pageSize: pagination.pageSize,

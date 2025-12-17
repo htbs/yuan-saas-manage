@@ -42,4 +42,8 @@ export interface GenericListProps<
     params: ListRequestParams<F>,
     config?: AxiosRequestConfig // 允许传递额外的 Axios 配置
   ) => Promise<{ list: T[]; total: number }>;
+
+  showIndexColumn?: boolean; // 是否显示索引列
+
+  onRefetch: (refetch: () => void) => void; // 供父组件获取列表刷新函数的 Callback
 }

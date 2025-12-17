@@ -1,6 +1,6 @@
 // 用户类型
 export interface User {
-  id: number; //用户ID
+  id: string; //用户ID
   userName: string; //用户名
   email: string; // 用户邮箱
   phone: string; // 手机号

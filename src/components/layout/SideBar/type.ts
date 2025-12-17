@@ -9,7 +9,8 @@ export enum RoutesEnum {
   detail = "/detail", //预约明细
   worksManagement = "/worksManagement", //作品管理
   category = "/category", //作品分类
-  management = "/management", //作品管理
+  sysManage = "/sysManage", //系统管理
+  sysUserManage = "/sysManage/sysUser/sysUserList", // 系统用户管理
 }
 
 //路由的类型
