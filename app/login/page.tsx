@@ -9,7 +9,7 @@ import { getUserInfoApi } from "../../src/services/user.service";
 import { User } from "../../src/types/user";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, setUser } = useAuth();
   const router = useRouter();
   const [loading] = useState(false);
 
@@ -20,7 +20,8 @@ export default function LoginPage() {
       const loginData: LoginResInfo = await login(vals, Boolean(vals.remember));
       // 登录成功，测试调用查询用户信息接口，
       const userInfo: User = await getUserInfoApi(loginData.userId);
-      console.log("登录成功----获取用户信息", userInfo);
+      // 保存用户信息到 state 中
+      setUser(userInfo);
       // 登录成功后跳转到首页（或上次页面）
       router.push("/home");
     } catch (err: unknown) {

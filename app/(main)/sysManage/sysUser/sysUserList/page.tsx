@@ -1,9 +1,9 @@
 "use client";
 import {
-  SysUserFilterListParams,
   SysUserDataList,
-} from "@/src/features/sysUser/types";
-import { useSysUserTable } from "@/src/features/sysUser/hooks/useSysUserTable";
+  SysUserFilterListParams,
+} from "@/src/features/sysUser";
+import { useSysUserTable } from "@/src/features/sysUser/index";
 import {
   userSearchFields,
   baseColumns,

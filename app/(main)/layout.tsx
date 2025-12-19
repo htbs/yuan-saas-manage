@@ -6,6 +6,7 @@ import SideBar from "@src/components/layout/SideBar/sideBar";
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/features/auth/hooks/useAuth";
+import RightHeader from "@src/components/layout/RightHeader/RightHeader";
 
 export function RootLayout({
   children,
@@ -53,7 +54,14 @@ export default function ProtectedLayout({
   return (
     <div className="w-full h-full flex">
       <SideBar />
-      <div className="flex-1">{children}</div>
+      {/* 2. 右侧包装容器：设为 flex-col 使内部元素上下排列 */}
+      <div className="flex-1 flex flex-col h-full">
+        {/* 右上区域 */}
+        <RightHeader />
+
+        {/* 右下区域 */}
+        <div className="flex-1 w-full">{children}</div>
+      </div>
     </div>
   );
 }

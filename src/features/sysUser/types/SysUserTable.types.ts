@@ -1,6 +1,6 @@
 import { FormFieldConfig } from "@/src/components/GenericFilterableList/types";
 import { ColumnType } from "antd/es/table";
-import { SysUserDataList } from "../types";
+import { PageParams, BaseResult, Page } from "@/src/types/constant";
 
 // 搜索表单配置
 export const userSearchFields: FormFieldConfig[] = [
@@ -27,3 +27,30 @@ export const baseColumns: ColumnType<SysUserDataList>[] = [
   { title: "状态", dataIndex: "status", key: "status" },
   { title: "操作", dataIndex: "action", key: "action" },
 ];
+
+/**
+ * 系统用户列表筛选参数
+ */
+export interface SysUserFilterListParams extends PageParams {
+  userName?: string;
+  phone?: string;
+  status?: number;
+}
+
+/**
+ * 系统用户列表数据
+ */
+export interface SysUserDataList extends BaseResult {
+  userName: string; // 用户名
+  email: string; // 邮箱
+  phone: string; // 手机号
+  realName: string; // 真实姓名
+  status: string; // 状态
+  deptId: number; // 部门ID
+  deptName: string; // 部门名称
+}
+
+/**
+ * 系统用户列表数据
+ */
+export type PageSysUser = Page<SysUserDataList>;
