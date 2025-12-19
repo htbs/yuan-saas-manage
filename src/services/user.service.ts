@@ -1,10 +1,7 @@
 // 用户相关的接口请求
 import request, { unwrap } from "@src/lib/request";
 import { LoginReqParams, LoginResInfo } from "@src/features/auth/type";
-import {
-  SysUserFilterListParams,
-  PageSysUser,
-} from "@src/features/sysUser/types";
+import { SysUserFilterListParams, PageSysUser } from "@/src/features/user";
 import { User } from "@src/types/user";
 
 // 用户登录

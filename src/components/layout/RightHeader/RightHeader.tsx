@@ -1,5 +1,5 @@
 import { Card } from "antd";
-import UserDropdown from "@/src/features/sysUser/components/UserDropdown/UserDropdown";
+import UserDropdown from "@/src/features/user/components/UserDropdown/UserDropdown";
 
 export default function RightHeader() {
   return (

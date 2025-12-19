@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import {
   SysUserFilterListParams,
   SysUserDataList,
-} from "../types/SysUserTable.types";
+} from "../types/UserTable.types";
 import { findPageListApi, lockUserApi, unLockUserApi } from "@/src/services";
 import {
   createSwitchStatusColumn,

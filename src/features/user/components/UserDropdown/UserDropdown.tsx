@@ -1,6 +1,6 @@
 import { Dropdown, Space, Avatar, MenuProps } from "antd";
 import { LogoutOutlined, LockOutlined, UserOutlined } from "@ant-design/icons";
-import { UserDropdownProps } from "../../";
+import { UserDropdownProps } from "../..";
 
 export default function UserDropdown(userDropdownProps: UserDropdownProps) {
   const { userName, userAvatar } = userDropdownProps;
