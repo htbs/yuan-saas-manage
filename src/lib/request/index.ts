@@ -13,7 +13,6 @@ import { StorageAuth } from "@/src/types/constant";
 import {
   readTokenFromStorages,
   saveAuthToStorage,
-  clearAuthFromStorage,
 } from "@/src/lib/utils/authUtil";
 
 /** 刷新 token 的纯函数 */

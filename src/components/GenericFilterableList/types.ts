@@ -46,4 +46,11 @@ export interface GenericListProps<
   showIndexColumn?: boolean; // 是否显示索引列
 
   onRefetch: (refetch: () => void) => void; // 供父组件获取列表刷新函数的 Callback
+
+  // 这些是使用zustand 的时候。可以选择传入。如果不需要可以忽略
+  initialValues?: F; // 外部传入的初始表单值
+  controlledPagination?: { current: number; pageSize: number }; // 外部页码
+  onPaginationChange?: (current: number, pageSize: number) => void; // 页码改变回调
+  onSearchUpdate?: (values: F) => void; // 点击搜索后的回调
+  onReset?: () => void; // 点击重置后的回调
 }

@@ -22,15 +22,26 @@ export const useListManager = <
   F extends object = Record<string, unknown>
 >(
   fetcher: GenericListProps<T, F>["fetcher"],
-  form: FormInstance<F>
+  form: FormInstance<F>,
+  props: GenericListProps<T, F>
 ): ListManagerResult<T> => {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
+  // const [total, setTotal] = useState(0);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0,
   });
+
+  // 内部兜底状态：如果没传 Zustand，组件也能跑
+  const [internalPagination, setInternalPagination] = useState({
+    current: 1,
+    pageSize: 10,
+  });
+
+  // 优先级：受控状态 > 内部状态
+  const activePagination = props.controlledPagination || internalPagination;
 
   //  数据获取函数
   const fetchData = useCallback(async () => {
@@ -67,47 +78,97 @@ export const useListManager = <
     fetchData();
   }, [fetchData]);
 
+  // 表单回显同步：当 Zustand 里的值变化（如重置），同步给 Form
+  useEffect(() => {
+    if (props.initialValues) {
+      form.setFieldsValue(props.initialValues);
+    }
+  }, [props.initialValues, form]);
+
   // 处理 Table 的分页/排序/过滤变化
-  const handleTableChange = (newPagination: PaginationProps) => {
-    // 仅更新分页状态，依赖项变化会触发 fetchData
-    setPagination((prev) => ({
-      ...prev,
-      current: newPagination.current || 1,
-      pageSize: newPagination.pageSize || 10,
-    }));
+  // const handleTableChange = (newPagination: PaginationProps) => {
+  //   // 仅更新分页状态，依赖项变化会触发 fetchData
+  //   setPagination((prev) => ({
+  //     ...prev,
+  //     current: newPagination.current || 1,
+  //     pageSize: newPagination.pageSize || 10,
+  //   }));
+  // };
+  const handleTableChange = (nav: PaginationProps) => {
+    const current = nav.current || 1;
+    const pageSize = nav.pageSize || 10;
+
+    if (props.onPaginationChange) {
+      props.onPaginationChange(current, pageSize);
+    } else {
+      setInternalPagination({ current, pageSize });
+    }
   };
 
   // 处理搜索按钮点击：重置页码到 1
-  const handleSearch = () => {
-    // 仅更新 current，依赖项变化会触发 fetchData
+  // const handleSearch = () => {
+  //   // 仅更新 current，依赖项变化会触发 fetchData
 
-    // setPagination((prev) => ({ ...prev, current: 1 }));
-    // 1. 获取当前页码
-    const currentPage = pagination.current;
-    if (currentPage !== 1) {
-      // 如果当前不在第一页，更新状态到 1，这会隐式触发 fetchData
-      setPagination((prev) => ({ ...prev, current: 1 }));
+  //   // setPagination((prev) => ({ ...prev, current: 1 }));
+  //   // 1. 获取当前页码
+  //   const currentPage = pagination.current;
+  //   if (currentPage !== 1) {
+  //     // 如果当前不在第一页，更新状态到 1，这会隐式触发 fetchData
+  //     setPagination((prev) => ({ ...prev, current: 1 }));
+  //   } else {
+  //     // 状态更新不会发生，我们需要强制执行 fetchData
+  //     fetchData();
+  //   }
+  // };
+
+  const handleSearch = () => {
+    const values = form.getFieldsValue();
+    props.onSearchUpdate?.(values); // 同步搜索条件到 Zustand
+
+    // 搜索时强制回第 1 页
+    if (activePagination.current !== 1) {
+      props.onPaginationChange
+        ? props.onPaginationChange(1, activePagination.pageSize)
+        : setInternalPagination((p) => ({ ...p, current: 1 }));
     } else {
-      // 状态更新不会发生，我们需要强制执行 fetchData
       fetchData();
     }
   };
 
   // 处理重置按钮点击：重置表单和页码
+  // const handleReset = () => {
+  //   form.resetFields();
+  //   // 强制重置分页状态
+  //   setPagination({ current: 1, pageSize: 10, total: 0 });
+  // };
+
   const handleReset = () => {
     form.resetFields();
-    // 强制重置分页状态
-    setPagination({ current: 1, pageSize: 10, total: 0 });
+    if (props.onReset) {
+      props.onReset();
+    } else {
+      setInternalPagination({ current: 1, pageSize: 10 });
+    }
   };
 
   // 导出状态和方法
+  // return {
+  //   data,
+  //   loading,
+  //   pagination,
+  //   handleTableChange,
+  //   handleSearch,
+  //   handleReset,
+  //   refetch,
+  // };
   return {
     data,
     loading,
+    // pagination: { ...activePagination, total },
     pagination,
     handleTableChange,
     handleSearch,
     handleReset,
-    refetch,
+    refetch: fetchData,
   };
 };

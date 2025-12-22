@@ -5,7 +5,7 @@ import { PageParams, BaseResult, Page } from "@/src/types/constant";
 // 搜索表单配置
 export const userSearchFields: FormFieldConfig[] = [
   { key: "userName", label: "用户账号", type: "input" },
-  { key: "email", label: "用户手机号", type: "input" },
+  { key: "phone", label: "用户手机号", type: "input" },
   {
     key: "status",
     label: "用户状态",

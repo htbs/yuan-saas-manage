@@ -9,15 +9,19 @@ import SearchForm from "./SearchForm";
 const GenericFilterableList = <
   T extends object,
   F extends object = Record<string, unknown>
->({
-  columns,
-  searchFields,
-  fetcher,
-  showIndexColumn = false, // 默认不显示序列列
-  onRefetch,
-}: GenericListProps<T, F>) => {
+>(
+  props: GenericListProps<T, F>
+) => {
   // 1. 初始化表单实例
   const [form] = Form.useForm<F>();
+  const {
+    columns,
+    searchFields,
+    fetcher,
+    showIndexColumn,
+    onRefetch,
+    initialValues,
+  } = props;
 
   // 2. 调用自定义 Hook 获取所有状态和逻辑
   const {
@@ -28,7 +32,7 @@ const GenericFilterableList = <
     handleSearch,
     handleReset,
     refetch,
-  } = useListManager<T, F>(fetcher, form);
+  } = useListManager<T, F>(fetcher, form, props);
 
   // 使用 useEffect 将 refetch 函数通过 onRefetch 传递给父组件
   React.useEffect(() => {
@@ -61,6 +65,7 @@ const GenericFilterableList = <
         searchFields={searchFields}
         onSearch={handleSearch}
         onReset={handleReset}
+        initialValues={initialValues}
       />
       {/* 通用表格 */}
       <Table

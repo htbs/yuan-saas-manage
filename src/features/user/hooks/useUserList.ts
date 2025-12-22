@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import {
   SysUserFilterListParams,
   SysUserDataList,
-} from "../types/UserTable.types";
+} from "../components/UserList/UserList.types";
 import { findPageListApi, lockUserApi, unLockUserApi } from "@/src/services";
 import {
   createSwitchStatusColumn,
@@ -13,7 +13,7 @@ import {
   createLinkColumn,
 } from "@/src/lib/utils/tableColumns";
 import { ActionItem } from "@/src/components/ui/dropdown/MoreActionsDropdown";
-
+import { useUserStore } from "../stores/useUserStore";
 export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
   const fetchUserList = useCallback(async (params: SysUserFilterListParams) => {
     // 实际调用您封装的 request 模块
@@ -21,6 +21,8 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
     return { list: result.content, total: result.totalElements };
   }, []);
   const router = useRouter();
+
+  const setView = useUserStore((state) => state.setView);
 
   // 使用 useRef 存储 refetch 函数
   const [refetcher, setRefetcher] = useState<() => void>(() => () => {});
@@ -47,8 +49,9 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
     const fixedActionItems: FixedActionItem<SysUserDataList>[] = [
       {
         label: "编辑",
-        onClick: (record) =>
-          router.push(`/sysManage/sysUser/sysUserAdd/${record.id}`),
+        onClick: (record) => {
+          setView("edit", record.id);
+        },
         type: "primary",
       },
     ];
@@ -56,8 +59,7 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
       {
         key: "seeDetail",
         label: "查看详情",
-        onClick: (record) =>
-          router.push(`/sysManage/sysUser/sysUserAdd/${record.id}`),
+        onClick: (record) => setView("detail", record.id),
       },
     ];
     // 使用 .map 遍历原始列配置，实现“原位增强”
@@ -67,7 +69,7 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
         return createLinkColumn<SysUserDataList>(
           "userName",
           (col.title as string) || "用户账号",
-          (record) => router.push(`/sysManage/sysUser/sysUserAdd/${record.id}`),
+          (record) => setView("detail", record.id),
           { ...col } // 继承原有的 width, fixed 等配置
         );
       }
@@ -94,7 +96,7 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
       // 其他列：保持原样
       return col;
     });
-  }, [baseColumns, apiUpdateStatus, refetcher, router]);
+  }, [baseColumns, apiUpdateStatus, refetcher, router, setView]);
 
   return {
     finalUserColumns,

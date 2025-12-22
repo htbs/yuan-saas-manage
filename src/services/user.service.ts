@@ -1,7 +1,11 @@
 // 用户相关的接口请求
 import request, { unwrap } from "@src/lib/request";
 import { LoginReqParams, LoginResInfo } from "@src/features/auth/type";
-import { SysUserFilterListParams, PageSysUser } from "@/src/features/user";
+import {
+  SysUserFilterListParams,
+  PageSysUser,
+  ResetPasswordParams,
+} from "@/src/features/user";
 import { User } from "@src/types/user";
 
 // 用户登录
@@ -41,4 +45,15 @@ export function lockUserApi(id: string): Promise<boolean> {
  */
 export function unLockUserApi(id: string): Promise<boolean> {
   return request.put<boolean, string>(`/sys/users/unlock/${id}`).then(unwrap);
+}
+
+/**
+ * 修改米啊米
+ * @param params 修改密码参数
+ * @returns
+ */
+export function updatePassword(params: ResetPasswordParams): Promise<boolean> {
+  return request
+    .put<boolean, ResetPasswordParams>(`/sys/users/restPassword/`, params)
+    .then(unwrap);
 }

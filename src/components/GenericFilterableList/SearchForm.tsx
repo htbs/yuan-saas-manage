@@ -14,6 +14,7 @@ interface SearchFormProps<F extends object = Record<string, unknown>> {
   searchFields: FormFieldConfig[];
   onSearch: () => void;
   onReset: () => void;
+  initialValues?: F;
 }
 
 // 辅助函数
@@ -67,6 +68,7 @@ const SearchForm = <F extends object>({
   searchFields,
   onSearch,
   onReset,
+  initialValues,
 }: SearchFormProps<F>) => {
   // 状态管理：控制是否展开更多筛选
   const [expand, setExpand] = React.useState(false);
@@ -86,6 +88,7 @@ const SearchForm = <F extends object>({
       form={form}
       onFinish={onSearch} // 提交时调用 onSearch
       style={{ padding: 24 }}
+      initialValues={initialValues}
     >
       <Row gutter={rowGutter}>
         {/* 动态渲染表单项 */}

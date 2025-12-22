@@ -10,6 +10,7 @@ import {
   saveAuthToStorage,
   clearAuthFromStorage,
 } from "@/src/lib/utils/authUtil";
+import Router from "next/router";
 
 /** 创建 AuthContext 上下文 */
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -60,8 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     setUser(null);
     setReady(true);
-
-    // 需要时可 router.push('/login') 由使用方决定
+    Router.push("/login");
   };
 
   // 记忆化 context value :

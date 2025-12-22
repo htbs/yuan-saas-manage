@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Form, Input, Button, Checkbox, message } from "antd";
+import { Form, Input, Button, message } from "antd";
 import { UserTypeEnum, LoginTypeEnum } from "@/src/types/constant";
 import { hashPasswordMD5UpperCase } from "@/src/lib/utils/crypto";
 import styles from "./LoginForm.module.css";

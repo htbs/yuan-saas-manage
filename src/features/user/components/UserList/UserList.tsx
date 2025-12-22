@@ -1,16 +1,18 @@
-"use client";
-import { SysUserDataList, SysUserFilterListParams } from "@/src/features/user";
-import { useSysUserTable } from "@/src/features/user/index";
 import {
+  SysUserDataList,
+  SysUserFilterListParams,
+  useSysUserTable,
   userSearchFields,
   baseColumns,
-} from "@/src/features/user/types/UserTable.types";
+  useUserStore,
+} from "@/src/features/user";
 import GenericFilterableList from "@/src/components/GenericFilterableList/GenericFilterableList";
 
-export default function SysUserList() {
+export function UserList() {
   const { finalUserColumns, fetchUserList, handleSetRefetch } =
     useSysUserTable(baseColumns);
-
+  const { queryParams, pagination, setPagination, setQueryParams, resetAll } =
+    useUserStore();
   return (
     <div>
       <GenericFilterableList<SysUserDataList, SysUserFilterListParams>
@@ -19,6 +21,11 @@ export default function SysUserList() {
         fetcher={fetchUserList}
         showIndexColumn={true}
         onRefetch={handleSetRefetch}
+        initialValues={queryParams} // 搜索条件回显
+        controlledPagination={pagination} // 分页同步
+        onPaginationChange={setPagination} // 分页操作回调
+        onSearchUpdate={setQueryParams} // 搜索操作回调
+        onReset={resetAll} // 重置操作回调
       />
     </div>
   );
