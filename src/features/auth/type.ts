@@ -17,7 +17,7 @@ export interface LoginResInfo {
   accessToken: string; // token
   refreshToken: string; // 刷新token
   userType: UserTypeEnum; // 用户类型
-  userId: number; // 用户id
+  userId: string; // 用户id
   username: string; // 用户名
   avatar: string; // 头像
 }

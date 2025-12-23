@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Modal, Form, Input } from "antd";
 import { ResetPasswordParams } from "./RestPassword.types";
-import { updatePassword } from "@src/services";
+import { updatePasswordApi } from "@src/services";
 import { hashPasswordMD5UpperCase } from "@/src/lib/utils/crypto";
 export const ResetPasswordModal: React.FC<{
   open: boolean;
@@ -17,8 +17,11 @@ export const ResetPasswordModal: React.FC<{
     try {
       params.oldPassword = hashPasswordMD5UpperCase(params.oldPassword);
       params.newPassword = hashPasswordMD5UpperCase(params.newPassword);
-      const resBool = await updatePassword(params);
+      await updatePasswordApi(params);
+      onCancel?.();
     } catch (err: unknown) {
+      setLoading(false);
+    } finally {
       setLoading(false);
     }
   };

@@ -27,14 +27,18 @@ export const useListManager = <
 ): ListManagerResult<T> => {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
-  // const [total, setTotal] = useState(0);
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
-  });
+  const [total, setTotal] = useState(0);
+  // const [pagination, setPagination] = useState({
+  //   current: 1,
+  //   pageSize: 10,
+  //   total: 0,
+  // });
 
   // 内部兜底状态：如果没传 Zustand，组件也能跑
+  // const [internalPagination, setInternalPagination] = useState({
+  //   current: 1,
+  //   pageSize: 10,
+  // });
   const [internalPagination, setInternalPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -53,19 +57,21 @@ export const useListManager = <
       // 2. 调用外部传入的 fetcher 函数
       const result = await fetcher({
         ...filterValues,
-        pageNo: pagination.current,
-        pageSize: pagination.pageSize,
+        pageNo: activePagination.current,
+        pageSize: activePagination.pageSize,
       });
 
       setData(result.list);
-      setPagination((prev) => ({ ...prev, total: result.total }));
+      setTotal(result.total || 0);
+      // setPagination((prev) => ({ ...prev, total: result.total }));
     } catch {
       setData([]);
-      setPagination((prev) => ({ ...prev, total: 0 }));
+      // setPagination((prev) => ({ ...prev, total: 0 }));
+      setTotal(0);
     } finally {
       setLoading(false);
     }
-  }, [form, pagination.current, pagination.pageSize, fetcher]); // 依赖项 这里不要改 改了就死循环了
+  }, [form, activePagination.current, activePagination.pageSize, fetcher]); // 依赖项 这里不要改 改了就死循环了
 
   const refetch = useCallback(() => {
     // 仅更新分页状态，依赖项变化会触发 fetchData
@@ -127,9 +133,11 @@ export const useListManager = <
 
     // 搜索时强制回第 1 页
     if (activePagination.current !== 1) {
-      props.onPaginationChange
-        ? props.onPaginationChange(1, activePagination.pageSize)
-        : setInternalPagination((p) => ({ ...p, current: 1 }));
+      if (props.onPaginationChange) {
+        props.onPaginationChange(1, activePagination.pageSize);
+      } else {
+        setInternalPagination((p) => ({ ...p, current: 1 }));
+      }
     } else {
       fetchData();
     }
@@ -165,7 +173,11 @@ export const useListManager = <
     data,
     loading,
     // pagination: { ...activePagination, total },
-    pagination,
+    pagination: {
+      current: activePagination.current,
+      pageSize: activePagination.pageSize,
+      total,
+    },
     handleTableChange,
     handleSearch,
     handleReset,

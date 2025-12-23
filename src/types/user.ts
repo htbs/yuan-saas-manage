@@ -8,4 +8,5 @@ export interface User {
   status: string; // 账户状态
   deptId: number; // 部门id
   roleIds: number[]; // 角色集合
+  headUrl: string; // 头像
 }

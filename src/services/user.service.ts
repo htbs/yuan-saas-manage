@@ -7,6 +7,7 @@ import {
   ResetPasswordParams,
 } from "@/src/features/user";
 import { User } from "@src/types/user";
+import { UpdateOrAddUserParams } from "../features/user/components/UserDetail/UserDetail.types";
 
 // 用户登录
 export function loginApi(params: LoginReqParams): Promise<LoginResInfo> {
@@ -16,7 +17,7 @@ export function loginApi(params: LoginReqParams): Promise<LoginResInfo> {
 }
 
 // 根据用户ID获取用户信息
-export function getUserInfoApi(id: number): Promise<User> {
+export function getUserInfoApi(id: string): Promise<User> {
   return request.get<User>(`/sys/users/${id}`).then(unwrap);
 }
 
@@ -48,12 +49,45 @@ export function unLockUserApi(id: string): Promise<boolean> {
 }
 
 /**
- * 修改米啊米
+ * 修改密码
  * @param params 修改密码参数
  * @returns
  */
-export function updatePassword(params: ResetPasswordParams): Promise<boolean> {
+export function updatePasswordApi(
+  params: ResetPasswordParams
+): Promise<boolean> {
   return request
-    .put<boolean, ResetPasswordParams>(`/sys/users/restPassword/`, params)
+    .post<boolean, ResetPasswordParams>(`/sys/users/update/pwd`, params)
+    .then(unwrap);
+}
+
+/**
+ * 重置密码
+ * @param params 参数
+ * @returns
+ */
+export function resetPasswordApi(id: string): Promise<boolean> {
+  return request.put<boolean>(`/sys/users/reset/pwd/${id}`).then(unwrap);
+}
+
+/**
+ * 新增用户
+ * @param params 保存用户
+ * @returns
+ */
+export function saveUserApi(params: UpdateOrAddUserParams): Promise<boolean> {
+  return request
+    .post<boolean, UpdateOrAddUserParams>("/sys/users/save", params)
+    .then(unwrap);
+}
+
+/**
+ * 修改用户
+ * @param params 用户参数
+ * @returns
+ */
+export function updateUserApi(params: UpdateOrAddUserParams): Promise<boolean> {
+  return request
+    .post<boolean, UpdateOrAddUserParams>("/sys/users/update", params)
     .then(unwrap);
 }

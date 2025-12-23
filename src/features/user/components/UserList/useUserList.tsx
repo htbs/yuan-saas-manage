@@ -1,11 +1,13 @@
 import { ColumnType } from "antd/es/table";
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { SysUserFilterListParams, SysUserDataList } from "./UserList.types";
 import {
-  SysUserFilterListParams,
-  SysUserDataList,
-} from "../components/UserList/UserList.types";
-import { findPageListApi, lockUserApi, unLockUserApi } from "@/src/services";
+  findPageListApi,
+  lockUserApi,
+  unLockUserApi,
+  resetPasswordApi,
+} from "@/src/services";
 import {
   createSwitchStatusColumn,
   createActionColumn,
@@ -13,7 +15,8 @@ import {
   createLinkColumn,
 } from "@/src/lib/utils/tableColumns";
 import { ActionItem } from "@/src/components/ui/dropdown/MoreActionsDropdown";
-import { useUserStore } from "../stores/useUserStore";
+import { useUserStore } from "../../stores/useUserStore";
+import { message, Popconfirm } from "antd";
 export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
   const fetchUserList = useCallback(async (params: SysUserFilterListParams) => {
     // 实际调用您封装的 request 模块
@@ -57,9 +60,19 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
     ];
     const actionItems: ActionItem<SysUserDataList>[] = [
       {
-        key: "seeDetail",
-        label: "查看详情",
-        onClick: (record) => setView("detail", record.id),
+        key: "resetPassword",
+        label: (record) => (
+          <Popconfirm
+            title="确定重置密码吗？"
+            onConfirm={async () => {
+              await resetPasswordApi(record.id);
+              message.success("重置密码成功");
+            }}
+          >
+            <a onClick={(e) => e.stopPropagation()}>重置密码</a>
+          </Popconfirm>
+        ),
+        onClick: () => {},
       },
     ];
     // 使用 .map 遍历原始列配置，实现“原位增强”

@@ -15,6 +15,7 @@ interface SearchFormProps<F extends object = Record<string, unknown>> {
   onSearch: () => void;
   onReset: () => void;
   initialValues?: F;
+  renderActions?: (form: FormInstance<F>) => React.ReactNode; // 自定义的操作按钮
 }
 
 // 辅助函数
@@ -69,6 +70,7 @@ const SearchForm = <F extends object>({
   onSearch,
   onReset,
   initialValues,
+  renderActions,
 }: SearchFormProps<F>) => {
   // 状态管理：控制是否展开更多筛选
   const [expand, setExpand] = React.useState(false);
@@ -114,9 +116,25 @@ const SearchForm = <F extends object>({
           );
         })}
 
-        <Col span={6}>
-          <Form.Item>
-            <Space size="middle">
+        <Col
+          flex="auto"
+          // span={expand ? 24 : 6}
+          style={{
+            display: "flex",
+            justifyContent: expand ? "flex-end" : "flex-start",
+            alignItems: "flex-start",
+          }}
+        >
+          <Form.Item colon={false}>
+            <Space
+              size="middle"
+              wrap
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                maxWidth: "100%",
+              }}
+            >
               <Button
                 type="primary"
                 htmlType="submit"
@@ -127,7 +145,8 @@ const SearchForm = <F extends object>({
               <Button onClick={onReset} icon={<ReloadOutlined />}>
                 重置
               </Button>
-
+              {/* 自定义的操作按钮，如：导出、导入、新增等 */}
+              {renderActions?.(form)}
               {/* 更多/收起按钮 (仅在需要时显示) */}
               {showCollapseButton && (
                 <a onClick={() => setExpand(!expand)}>

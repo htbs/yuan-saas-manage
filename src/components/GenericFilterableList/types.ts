@@ -1,6 +1,7 @@
 import { ColumnType } from "antd/es/table";
 import { Rule } from "antd/es/form";
 import { AxiosRequestConfig } from "axios";
+import { FormInstance } from "antd";
 
 // 1. 搜索表单字段配置类型
 export interface FormFieldConfig {
@@ -46,6 +47,9 @@ export interface GenericListProps<
   showIndexColumn?: boolean; // 是否显示索引列
 
   onRefetch: (refetch: () => void) => void; // 供父组件获取列表刷新函数的 Callback
+
+  // 自定义操作栏：接收当前表单实例，方便实现导出、新增等功能，与搜索条件中的查询、重置对齐
+  renderSearchActions?: (form: FormInstance<F>) => React.ReactNode;
 
   // 这些是使用zustand 的时候。可以选择传入。如果不需要可以忽略
   initialValues?: F; // 外部传入的初始表单值

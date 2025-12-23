@@ -21,6 +21,7 @@ const GenericFilterableList = <
     showIndexColumn,
     onRefetch,
     initialValues,
+    renderSearchActions,
   } = props;
 
   // 2. 调用自定义 Hook 获取所有状态和逻辑
@@ -66,6 +67,7 @@ const GenericFilterableList = <
         onSearch={handleSearch}
         onReset={handleReset}
         initialValues={initialValues}
+        renderActions={renderSearchActions}
       />
       {/* 通用表格 */}
       <Table

@@ -17,7 +17,7 @@ export default function UserOptions() {
   const renderContent = () => {
     switch (view) {
       case "add":
-        return <div>添加用户</div>;
+        return <UserDetail />;
       case "edit":
         if (!id) {
           message.error("请选择要编辑的用户");

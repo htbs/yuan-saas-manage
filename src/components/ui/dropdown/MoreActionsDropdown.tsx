@@ -5,7 +5,7 @@ import { DownOutlined } from "@ant-design/icons";
 // 定义单个操作项的类型
 export interface ActionItem<T> {
   key: string;
-  label: string;
+  label: string | ((record: T) => React.ReactNode);
   /** 点击时的回调函数，接收当前行数据 */
   onClick: (record: T) => void;
   /** 是否禁用该操作项 */
@@ -36,7 +36,10 @@ const MoreActionsDropdown = <T extends object>({
     // 构造 items 数组
     items: actions.map((action) => ({
       key: action.key,
-      label: action.label,
+      label:
+        typeof action.label === "function"
+          ? action.label(record)
+          : action.label,
       //  将禁用逻辑放入配置对象中
       disabled: action.disabled ? action.disabled(record) : false,
     })),

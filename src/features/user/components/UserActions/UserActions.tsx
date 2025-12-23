@@ -1,4 +1,4 @@
-import { Dropdown, Space, Avatar, MenuProps } from "antd";
+import { Dropdown, Space, Avatar, MenuProps, Modal } from "antd";
 import {
   LogoutOutlined,
   LockOutlined,
@@ -8,10 +8,13 @@ import {
 import { UserActionsProps } from "./UserActions.type";
 import useUserActions from "./useUserActions";
 import { ResetPasswordModal } from "../RestPassword/RestPasswordModal";
+import { useUserStore } from "../../stores/useUserStore";
+import { UserDetail } from "../UserDetail/UserDetail";
 
 export default function UserDropdown(userActionsProps: UserActionsProps) {
   const { activeModal, colseModal, openModal, logout } = useUserActions();
   const { userName, userAvatar } = userActionsProps;
+  const setView = useUserStore((state) => state.setView);
   const handleClick: MenuProps["onClick"] = ({ key }) => {
     switch (key) {
       case "logout":
@@ -79,6 +82,18 @@ export default function UserDropdown(userActionsProps: UserActionsProps) {
         open={activeModal === "updatePassword"}
         onCancel={colseModal}
       />
+      {/* 这个暂时先放着 不确定如何实现 */}
+      {/* <Modal
+        title="编辑个人信息"
+        open={activeModal === "editUserProfile"}
+        // onCancel={onCancel}
+        // onOk={() => form.submit()}
+        // confirmLoading={loading}
+        destroyOnHidden={true}
+        closable={false}
+      >
+        <UserDetail id="261925757322924032" />
+      </Modal> */}
     </>
   );
 }
