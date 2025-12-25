@@ -3,7 +3,7 @@ import type { MenuProps } from "antd";
 //定义一个路由和侧边栏的key对应关系的enum。
 export enum RoutesEnum {
   home = "/home", //数据看板
-  merchant = "/merchant/list", //商家管理
+  merchant = "/shop", //商家管理
   reserve = "/reserve", //预约管理
   board = "/board", //预约看板
   detail = "/detail", //预约明细
