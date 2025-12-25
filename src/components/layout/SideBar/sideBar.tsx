@@ -63,6 +63,10 @@ const menuList: MenuItemType[] = [
         key: "sysUserManage",
         label: "用户管理",
       },
+      {
+        key: "sysRoleManage",
+        label: "角色管理",
+      },
     ],
   },
 ];

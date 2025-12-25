@@ -11,6 +11,7 @@ export enum RoutesEnum {
   category = "/category", //作品分类
   sysManage = "/sysManage", //系统管理
   sysUserManage = "/sysManage/user?view=list", // 系统用户管理
+  sysRoleManage = "/sysManage/role?view=list", // 系统角色管理
 }
 
 //路由的类型

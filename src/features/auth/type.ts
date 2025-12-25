@@ -30,7 +30,8 @@ export interface AuthContextValue {
   ready: boolean; // 是否完成初始化 ( 读取 storage 完成 )
   login: (params: LoginReqParams, remember?: boolean) => Promise<LoginResInfo>; // function : 登录
   logout: () => void; // function : 登出
-  setUser: (u: User) => void; // function : 更新用户信息
+  // setUser: (u: User) => void; // function : 更新用户信息
+  storageUserInfo: (u: User) => void; // function : 存储用户信息
   // TODO: 这里采用了 any, 且提供了 setUser 方法, 需调整;
 }
 

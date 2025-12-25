@@ -1,5 +1,6 @@
 // 存储到localstorage中的token的key
 export const STORAGE_AUTH = "auth";
+export const STORAGE_USER = "userInfo";
 
 // 存储到localstorage中的token的对象key，auth对应StorageAuth
 export interface StorageAuth {

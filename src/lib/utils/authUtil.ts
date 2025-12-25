@@ -1,4 +1,5 @@
-import { STORAGE_AUTH, StorageAuth } from "@src/types/constant";
+import { User } from "@/src/types/user";
+import { STORAGE_AUTH, STORAGE_USER, StorageAuth } from "@src/types/constant";
 /** 从 storage 读取 token */
 export function readTokenFromStorages(): StorageAuth {
   // window 是浏览器提供的全局对象, 服务端渲染时是没有 window 的 ! ( typeof 规避异常 )
@@ -28,4 +29,28 @@ export function clearAuthFromStorage() {
 
   // 移除 localStorage / sessionStorage 中的 token / user :
   localStorage.removeItem(STORAGE_AUTH);
+  localStorage.removeItem(STORAGE_USER);
+}
+
+/**
+ * 存储当前登录人信息
+ */
+export function saveUserToStorage(userInfo: User) {
+  // window 是浏览器提供的全局对象, 服务端渲染时是没有 window 的 ! ( typeof 规避异常 )
+  if (typeof window === "undefined") return;
+
+  // 存入用户信息 :
+  localStorage.setItem(STORAGE_USER, JSON.stringify(userInfo));
+}
+
+/**
+ * 获取当地登录人信息
+ */
+export function readLocalUserInfo(): User | null {
+  // window 是浏览器提供的全局对象, 服务端渲染时是没有 window 的 ! ( typeof 规避异常 )
+  if (typeof window === "undefined") return null;
+
+  // 获取用户信息 :
+  const userInfo = localStorage.getItem(STORAGE_USER);
+  return userInfo ? (JSON.parse(userInfo) as User) : null;
 }

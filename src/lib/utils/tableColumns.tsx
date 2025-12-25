@@ -3,13 +3,13 @@ import { ColumnType } from "antd/es/table";
 import MoreActionsDropdown, {
   ActionItem,
 } from "@/src/components/ui/dropdown/MoreActionsDropdown";
-import { Button, Switch, Typography } from "antd";
+import { Button, Switch, Typography, Space } from "antd";
 
 // --------------- 这里是操作列-------------
 
 // 定义固定操作的类型
 export interface FixedActionItem<T> {
-  label: string;
+  label: string | ((record: T) => React.ReactNode);
   onClick: (record: T) => void;
   // 允许传入 Antd Button 的 type 等其他属性
   type?: "link" | "primary" | "default";
@@ -23,7 +23,7 @@ export interface FixedActionItem<T> {
  */
 export const createActionColumn = <T extends object>(
   fixedActions: FixedActionItem<T>[],
-  moreActions: ActionItem<T>[]
+  moreActions?: ActionItem<T>[]
 ): ColumnType<T> => {
   // 确保 key 始终是 'action'
   const column: ColumnType<T> = {
@@ -33,17 +33,21 @@ export const createActionColumn = <T extends object>(
     render: (text, record: T) => {
       return (
         <>
-          {/* 1. 渲染固定操作按钮 */}
-          {fixedActions.map((action, index) => (
-            <Button
-              key={index}
-              type={action.type || "link"}
-              onClick={() => action.onClick(record)}
-            >
-              {action.label}
-            </Button>
-          ))}
-
+          <Space size="small">
+            {/* 1. 渲染固定操作按钮 */}
+            {fixedActions.map((action, index) => (
+              <Button
+                key={index}
+                type={action.type || "link"}
+                onClick={() => action.onClick(record)}
+              >
+                {/* {action.label} */}
+                {typeof action.label === "function"
+                  ? action.label(record)
+                  : action.label}
+              </Button>
+            ))}
+          </Space>
           {/* 2. 渲染“更多”下拉菜单，仅在 moreActions 不为空时显示 */}
           {moreActions && moreActions.length > 0 && (
             <MoreActionsDropdown record={record} actions={moreActions} />

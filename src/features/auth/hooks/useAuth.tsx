@@ -9,6 +9,7 @@ import {
   readTokenFromStorages,
   saveAuthToStorage,
   clearAuthFromStorage,
+  saveUserToStorage,
 } from "@/src/lib/utils/authUtil";
 import Router from "next/router";
 
@@ -64,6 +65,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     Router.push("/login");
   };
 
+  /**
+   * 存储用户信息
+   */
+  const storageUserInfo = (user: User) => {
+    setUser(user);
+    saveUserToStorage(user);
+  };
+
   // 记忆化 context value :
   const authContextValue = useMemo(
     () => ({
@@ -73,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ready,
       login,
       logout,
-      setUser,
+      storageUserInfo,
     }),
     [token, user, ready]
   );

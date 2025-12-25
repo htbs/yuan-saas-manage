@@ -109,7 +109,7 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
       // 其他列：保持原样
       return col;
     });
-  }, [baseColumns, apiUpdateStatus, refetcher, router, setView]);
+  }, [baseColumns, apiUpdateStatus, refetcher, setView]);
 
   return {
     finalUserColumns,

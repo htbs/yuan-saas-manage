@@ -19,7 +19,7 @@ export function UserList() {
     return (
       <Space>
         <Button icon={<PlusOutlined />} onClick={() => setView("add")}>
-          新增用户
+          新增
         </Button>
       </Space>
     );

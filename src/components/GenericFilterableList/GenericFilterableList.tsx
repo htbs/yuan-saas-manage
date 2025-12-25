@@ -27,7 +27,6 @@ const GenericFilterableList = <
   // 2. 调用自定义 Hook 获取所有状态和逻辑
   const {
     data,
-    loading,
     pagination,
     handleTableChange,
     handleSearch,
@@ -74,6 +73,7 @@ const GenericFilterableList = <
         columns={finalColumns}
         dataSource={data}
         rowKey="id"
+        tableLayout="fixed"
         // loading={loading}
         pagination={{
           current: pagination.current,
@@ -84,7 +84,6 @@ const GenericFilterableList = <
         }}
         // 绑定 Hook 中的 Table 变化处理函数
         onChange={handleTableChange}
-        scroll={{ x: "max-content" }}
       />
     </Card>
   );

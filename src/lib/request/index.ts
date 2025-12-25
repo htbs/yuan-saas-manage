@@ -71,6 +71,9 @@ const handleError = (code: string, msg?: string) => {
     case "500":
       errorMessage = "服务器内部错误";
       break;
+    case "ECONNABORTED":
+      errorMessage = "服务打盹了";
+      break;
     default:
       break;
   }
@@ -185,7 +188,6 @@ service.interceptors.response.use(
         failedQueue.forEach(({ reject }) => reject(refreshErr));
         failedQueue = [];
         handleError(String("401"));
-        console.log("refreshErr:", refreshErr);
         if (typeof window !== "undefined") {
           console.error("认证过期，正在跳转登录...");
           // 2. 优先尝试单例跳转，失败则使用 location
@@ -197,7 +199,11 @@ service.interceptors.response.use(
       }
     }
     // 其它错误继续抛
-    handleError(String(status), err.response?.data.message);
+    if (err.response) {
+      handleError(String(status), err.response?.data.message);
+    } else {
+      handleError(String(err.code));
+    }
     return Promise.reject(err);
   }
 );
