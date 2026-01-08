@@ -14,32 +14,24 @@ export default function Shop() {
     };
   }, [resetAll]);
 
+  // 定义一个组件映射
+  const contentView = {
+      add: <ShopDetail />,
+      detail: id ? <ShopDetail id={id} /> : null,
+      edit: id ? <ShopDetail id={id} /> : null,
+      auth: id ? <ShopDetail id={id} /> : null,
+  }
+  // 渲染内容
   const renderContent = () => {
-    switch (view) {
-      case "add":
-        return <ShopList />;
-      // case "edit":
-      //   if (!id) {
-      //     message.error("请选择要编辑的用户");
-      //   } else {
-      //     return <RoleDetail id={id} />;
-      //   }
-      case "detail":
-        if (!id) {
-          message.error("请选择要查看的用户");
-        } else {
-          return <ShopDetail id={id} />;
-        }
-      // case "auth":
-      //   if (!id) {
-      //     message.error("请选择要授权的角色");
-      //   } else {
-      //     return <RoleAuth />;
-      //   }
-      default:
-        return <ShopList />;
-    }
-  };
-
-  return <div className="w-full!">{renderContent()}</div>;
+      const content = contentView[view as keyof typeof contentView]
+      // 如果有对印的组件就返回组件
+      if(content) return content;
+      // 没有要的组件就给用户提示
+      if(['detail", "auth'].includes(view)){
+          message.error("请选择要操作的项");
+      }
+      // 默认返回列表
+      return <ShopList />;
+  }
+  return <div>{renderContent()}</div>
 }

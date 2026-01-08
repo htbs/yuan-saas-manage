@@ -103,7 +103,7 @@ const SideBar: React.FC = () => {
         </div>
         <Menu
           //   className="h-[calc(100vh-var(--sidebar-logo-h))]"
-          className={`h-[calc(100vh-var(--sidebar-logo-h)) mt-4! ${
+          className={`h-[calc(100vh-var(--sidebar-logo-h)) no-border-menu ${
             collapsed ? "w-20!" : "w-60!"
           }`}
           styles={styles}

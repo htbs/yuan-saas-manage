@@ -1,0 +1,5 @@
+.no-border-menu.ant-menu-inline,
+.no-border-menu.ant-menu-vertical {
+    border-right: none !important;
+    border-inline-end: none !important;
+}

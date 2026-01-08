@@ -23,15 +23,24 @@ src/
 │           └── Button.types.ts  # 【组件类型】与组件并列的类型声明
 │
 ├── features/         # ✨ 功能模块 (业务逻辑的核心)
-│   └── user-profile/
-│       ├── api/            # 该功能相关的 API 请求
-│       │   └── useGetUser.ts
-│       ├── components/     # 该功能独有的组件
-│       │   └── UserAvatar.tsx
+│   └── decorate/             # 路由组件（decorate）的功能模块
+│       ├── api/              # 该功能相关的 API 请求
+│       │   └── useGetUser.ts # 该功能模块的api请求
+│       │   └── types.ts      # api请求的类型
+│       ├── components/       # 该功能独有的组件
+│       │   └── A组件
+│       │       └── A.tsx     # A组件
+│       │       └── useA.ts   # A组件的hooks
+│       │       └── types.ts  # 该组件hooks的类型
+│       │   └── B组件
+│       │       └── B.tsx     # B组件
+│       │       └── useB.ts   # B组件的hooks
+│       │       └── types.ts  # 该组件hooks的类型
 │       ├── hooks/          # 该功能相关的 Hooks
-│       │   └── useUserProfile.ts
+│       │   └── useDecorate.ts
+│       │   └── types.ts    # 该功能hooks的类型
 │       └── types/          # 该功能相关的类型
-│           └── index.ts      # (例如: User, Profile)
+│           └── index.ts     
 │
 ├── hooks/            # 🏠 全局通用的自定义 Hooks
 │   ├── useDebounce.ts

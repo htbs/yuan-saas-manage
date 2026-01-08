@@ -55,7 +55,7 @@ export default function ProtectedLayout({
     <div className="w-full h-full flex">
       <SideBar />
       {/* 2. 右侧包装容器：设为 flex-col 使内部元素上下排列 */}
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex-1 flex flex-col h-full view-main">
         {/* 右上区域 */}
         <RightHeader />
 

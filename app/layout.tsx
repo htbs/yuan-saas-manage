@@ -4,6 +4,7 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "@/src/styles/reset.css";
 import "@/src/styles/variables.css";
 import "@/src/styles/globals.css";
+import "@/src/styles/ant-design/ant-design-ui.css"
 import zhCN from "antd/locale/zh_CN";
 import "dayjs/locale/zh-cn";
 import Providers from "./providers";
