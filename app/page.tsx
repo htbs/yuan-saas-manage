@@ -11,11 +11,11 @@ export default function RootPage() {
 
   useEffect(() => {
     console.log("isAuthenticated:------------ ", isAuthenticated);
-    // if (isAuthenticated) {
-    //   router.replace("/home");
-    // } else {
-    //   router.replace("/login");
-    // }
+    if (isAuthenticated) {
+      router.replace("/home");
+    } else {
+      router.replace("/login");
+    }
   }, [isAuthenticated, router]);
 
   return null;

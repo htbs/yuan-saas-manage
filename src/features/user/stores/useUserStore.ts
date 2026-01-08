@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { SysUserFilterListParams } from "../components/UserList/UserList.types";
+import { SysUserFilterListParams } from "@src/features/user";
 
 interface UserState {
   // --- 状态 ---
