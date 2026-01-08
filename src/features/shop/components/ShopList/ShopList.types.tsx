@@ -1,6 +1,7 @@
 import { FormFieldConfig } from "@/src/components/GenericFilterableList/types";
 import { ColumnType } from "antd/es/table";
 import { ShopListInfo } from "../../types";
+import { getShopTypeName } from "@src/types/shopCons";
 
 // 搜索表单配置
 export const searchFields: FormFieldConfig[] = [
@@ -22,7 +23,14 @@ export const searchFields: FormFieldConfig[] = [
 export const baseColumns: ColumnType<ShopListInfo>[] = [
   { title: "店铺编号", dataIndex: "code", key: "code" },
   { title: "店铺名称", dataIndex: "name", key: "name" },
-  { title: "店铺类型", dataIndex: "type", key: "type" },
+  {
+    title: "店铺类型",
+    dataIndex: "type",
+    key: "type",
+    render: (value) => {
+      return getShopTypeName(value);
+    },
+  },
   {
     title: "签约状态",
     dataIndex: "signedStatus",

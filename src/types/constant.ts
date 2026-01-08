@@ -56,3 +56,23 @@ export interface BaseResult {
   updateBy: string; // 修改人
   updateAt: string; // 修改时间
 }
+
+/**
+ * 商家类型枚举类
+ *
+ */
+export enum ShopTypeEnum {
+  /**
+   * 餐饮
+   */
+  RESTAURANT = "RESTAURANT",
+  /**
+   * 景点
+   */
+  SCENIC_SPOT = "SCENIC_SPOT",
+
+  /**
+   * 美容美妆
+   */
+  BEAUTY = "BEAUTY",
+}

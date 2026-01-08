@@ -1,6 +1,6 @@
 "use client";
 
-import { useShopStore, ShopList, ShopInfo } from "@/src/features/shop";
+import { useShopStore, ShopList, ShopDetail } from "@/src/features/shop";
 import { message } from "antd";
 import { useEffect } from "react";
 
@@ -24,12 +24,12 @@ export default function Shop() {
       //   } else {
       //     return <RoleDetail id={id} />;
       //   }
-      // case "detail":
-      //   if (!id) {
-      //     message.error("请选择要查看的用户");
-      //   } else {
-      //     return <RoleDetail id={id} />;
-      //   }
+      case "detail":
+        if (!id) {
+          message.error("请选择要查看的用户");
+        } else {
+          return <ShopDetail id={id} />;
+        }
       // case "auth":
       //   if (!id) {
       //     message.error("请选择要授权的角色");
