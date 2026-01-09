@@ -1,7 +1,7 @@
 import { FormFieldConfig } from "@/src/components/GenericFilterableList/types";
 import { ColumnType } from "antd/es/table";
 import { ShopListInfo } from "../../types";
-import { getShopTypeName } from "@src/types/shopCons";
+import { getShopTypeName } from "../../types";
 
 // 搜索表单配置
 export const searchFields: FormFieldConfig[] = [
@@ -12,9 +12,9 @@ export const searchFields: FormFieldConfig[] = [
     label: "签约状态",
     type: "select",
     options: [
-      { value: "suspended", label: "未签约" },
-      { value: "active", label: "已签约" },
-      { value: "suspended1", label: "已到期" },
+      { value: "UNSIGNED", label: "未签约" },
+      { value: "SIGNED", label: "已签约" },
+      { value: "EXPIRED", label: "已到期" },
     ],
   },
 ];
@@ -36,9 +36,9 @@ export const baseColumns: ColumnType<ShopListInfo>[] = [
     dataIndex: "signedStatus",
     key: "depsignedStatustName",
     render: (value) => {
-      if (value === "Y") return "已签约";
-      if (value === "N") return "未签约";
-      if (value === "U") return "已到期";
+      if (value === "SIGNED") return "已签约";
+      if (value === "UNSIGNED") return "未签约";
+      if (value === "EXPIRED") return "已到期";
     },
   },
   { title: "签约时间", dataIndex: "signedStartAt", key: "signedStartAt" },

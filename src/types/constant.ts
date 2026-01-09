@@ -76,3 +76,23 @@ export enum ShopTypeEnum {
    */
   BEAUTY = "BEAUTY",
 }
+
+/**
+ * 地址元信息
+ */
+export interface AddressMeta {
+  // 省区划编码
+  provinceCode: string;
+  // 省名称
+  provinceName: string;
+  // 市区划编码
+  cityCode: string;
+  // 市名称
+  cityName: string;
+  // 区划编码
+  districtCode: string;
+  // 区名称
+  districtName: string;
+  // 详细地址
+  detailsAddress: string;
+}

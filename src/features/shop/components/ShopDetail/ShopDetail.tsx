@@ -1,30 +1,23 @@
 // 详情、修改、新增
-import DetailHeader from '@src/components/layout/Detailheader/index'
+import DetailHeader from "@src/components/layout/Detailheader/index";
 import { useShopStore } from "../../stores/useShopStore";
-import { useState } from 'react';
+import { useState, useEffect } from "react";
+import { ShopInfo, UpdateOrAddShopInfo } from "../../types";
+import {
+  addShopApi,
+  findShopByIdApi,
+  updateShopApi,
+} from "@src/services/shop.service";
+import message from "antd/lib/message";
+import { Form, Input } from "antd";
 
 interface ShopDetailProps {
   id?: string;
 }
 
 export function ShopDetail(props: ShopDetailProps) {
-    const [loading, setLoading] = useState(false);
-    // 假设当前是从路由获取的参数，这里模拟为 'add'
-    const currentMode = 'add';
+  const [loading, setLoading] = useState(false);
 
-    const handleBack = () => {
-        setView('list');
-    };
-
-    const handleSave = () => {
-        setLoading(true);
-        // 模拟异步请求
-        setTimeout(() => {
-            setLoading(false);
-            console.log('保存成功');
-            setView('list');
-        }, 2000);
-    };
   // 详情ID
   const shopId = useShopStore((state) => state.editId);
   // 设置详情视图
@@ -32,16 +25,66 @@ export function ShopDetail(props: ShopDetailProps) {
   // 详情视图
   const view = useShopStore((state) => state.view);
 
-  return <div className="p-6 bg-gray-50">
+  // 绑定form
+  const [form] = Form.useForm();
+
+  useEffect(() => {
+    if (view && shopId) {
+      (async () => {
+        const shopInfo: ShopInfo = await findShopByIdApi(shopId);
+        // 这里通过查出来的信息绑定form
+        form.setFieldsValue(shopInfo);
+      })();
+    }
+  }, [view, shopId, form]);
+
+  const handleSubmit = async (params: UpdateOrAddShopInfo) => {
+    try {
+      if (view && view === "edit") {
+        if (!shopId) {
+          message.error("请选择要编辑的角色");
+          return;
+        }
+        params.id = shopId;
+        // 编辑用户
+        await updateShopApi(params);
+      } else if (view && view === "add") {
+        // 新增用户
+        await addShopApi(params);
+      }
+      setView("list");
+    } catch (err: unknown) {}
+  };
+
+  const handleBack = () => {
+    setView("list");
+  };
+
+  const handleSave = () => {
+    form.submit();
+  };
+
+  return (
+    <div className="p-6 bg-gray-50">
       {/* 头部组件 */}
-       <DetailHeader
-          mode={view}
-          onBack={handleBack}
-          onSave={handleSave}
-          loading={loading}
+      <DetailHeader
+        mode={view}
+        onBack={handleBack}
+        onSave={handleSave}
+        loading={loading}
       />
-
-
-
-  </div>
+      <Form
+        form={form}
+        onFinish={handleSubmit} // 校验通过后的“终点站”
+      >
+        <Form.Item
+          name="name"
+          rules={[{ required: true, message: "请输入名称" }]}
+        >
+          <Input />
+        </Form.Item>
+        {/* ... */}
+      </Form>
+    </div>
+  );
 }
