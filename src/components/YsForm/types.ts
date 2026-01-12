@@ -63,3 +63,6 @@ export interface SchemaFormProps<T extends FieldValues> {
     gridCols?: number; // 默认每行几列 (用于计算默认 span)
     gutter?: number | [number, number]; // 栅格间距
 }
+export interface SchemaFormRef {
+    submit: () => void;
+}

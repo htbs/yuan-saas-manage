@@ -572,3 +572,291 @@ export default function DemoPage() {
 | `renderBefore` | `ReactNode` | ✅ | 前置插槽 |
 | `renderAfter` | `ReactNode` | ✅ | 后置插槽 |
 | `componentProps` | `Object` | ✅ | 透传给 Antd 组件的 Props |
+
+
+# 修改后文档更新
+这是一个全新的、经过整理的 **使用文档 (Usage Guide)**。
+
+它涵盖了从**基础配置**到**高级动态联动**，再到**弹窗外部提交**的所有场景。你可以直接将此内容保存为项目的 `README.md` 或开发文档。
+
+---
+
+# 📘 SchemaForm 通用表单组件文档
+
+基于 **React 19** + **Ant Design** + **React Hook Form** + **Zod** 的高性能配置化表单解决方案。
+
+## ✨ 核心特性
+
+*   **配置驱动 UI**: 分离验证逻辑（Zod）与 UI 渲染逻辑（JSON Config）。
+*   **响应式联动**: 几乎所有 UI 属性（显隐、禁用、宽度、文案）都支持传入函数 `(values) => result`，实时响应表单数据变化。
+*   **Ant Design 原生体验**: 完美复用 Antd 的 Grid 栅格系统与 Form.Item 样式。
+*   **外部控制**: 支持通过 `ref` 从组件外部触发表单提交（适用于 Modal/Drawer 场景）。
+*   **类型安全**: 全链路 TypeScript 支持。
+
+---
+
+## 📦 1. 安装依赖
+
+确保你的项目安装了以下核心库：
+
+```bash
+# npm
+npm install react-hook-form zod @hookform/resolvers antd @ant-design/icons
+
+# pnpm
+pnpm add react-hook-form zod @hookform/resolvers antd @ant-design/icons
+```
+
+---
+
+## 🛠 2. API 参考
+
+### `<SchemaForm />` Props
+
+| 属性 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `schema` | `ZodSchema` | ✅ | Zod 定义的验证规则 |
+| `fields` | `FormFieldConfig[]` | ✅ | 字段 UI 配置数组 |
+| `onSubmit` | `(data) => void` | ✅ | 验证通过后的回调 |
+| `defaultValues` | `Partial<T>` | ❌ | 表单默认值 |
+| `ref` | `Ref<SchemaFormRef>` | ❌ | 用于获取实例，调用 `ref.current.submit()` |
+| `onFieldChange` | `(name, val, all) => void` | ❌ | 字段变化时的回调 (需配合 `emitChange: true`) |
+| `layout` | `'horizontal' \| 'vertical'` | ❌ | Label 位置，默认 `'vertical'` |
+| `gridCols` | `number` | ❌ | 默认每行显示几列 (默认 1) |
+| `loading` | `boolean` | ❌ | 提交按钮 Loading 状态 |
+
+### `FormFieldConfig` (字段配置对象)
+
+> **💡 动态属性说明**：
+> 标记为 **[动态]** 的属性，既可以传静态值（如 `true`），也可以传函数 `(data) => boolean`。
+> 函数接收当前表单的所有值 `data`，返回计算后的属性值。
+
+| 属性 | 类型 | 说明 |
+| :--- | :--- | :--- |
+| `name` | `string` | 对应 Schema 中的字段名 |
+| `type` | `string` | `input`, `select`, `date`, `number`, `switch`, `custom` 等 |
+| `label` | `string` / `func` | **[动态]** 字段标签 |
+| `span` | `number` / `func` | **[动态]** 栅格宽度 (0-24) |
+| `ifShow` | `boolean` / `func` | **[动态]** 是否渲染该字段 |
+| `disabled` | `boolean` / `func` | **[动态]** 是否禁用 |
+| `required` | `boolean` / `func` | **[动态]** 是否显示必填红星 (实际校验看 Schema) |
+| `component` | `Component` | 当 type=`custom` 时，传入自定义 React 组件 |
+| `componentProps` | `Object` / `func` | **[动态]** 透传给 Antd 组件的原生 Props (如 `placeholder`, `step`) |
+| `renderBefore` | `ReactNode` / `func` | **[动态]** 前置插槽 (图标/文本) |
+| `renderAfter` | `ReactNode` / `func` | **[动态]** 后置插槽 (单位/说明) |
+| `emitChange` | `boolean` | 是否触发外部 `onFieldChange` 事件 |
+
+---
+======================================================================文档更新===================================================================
+## 🚀 3. 使用场景示例
+
+### 场景一：基础使用 (最简代码)
+
+```tsx
+import { z } from "zod";
+import SchemaForm from "@/components/SchemaForm";
+
+// 1. 定义验证
+const schema = z.object({
+  username: z.string().min(1, "必填"),
+  age: z.number().min(18),
+});
+
+export default function BasicPage() {
+  return (
+    <SchemaForm
+      schema={schema}
+      onSubmit={(data) => console.log(data)}
+      fields={[
+        { name: "username", label: "姓名", type: "input" },
+        { name: "age", label: "年龄", type: "number" },
+      ]}
+    >
+      <button type="submit">提交</button>
+    </SchemaForm>
+  );
+}
+```
+
+---
+
+### 场景二：高级动态联动 (推荐)
+
+展示如何根据一个字段的值，改变另一个字段的**显隐**、**Label**、**单位**和**属性**。
+
+```tsx
+import { z } from "zod";
+import SchemaForm from "@/components/SchemaForm";
+
+const schema = z.object({
+  role: z.string(),
+  companyTaxId: z.string().optional(),
+  salary: z.number(),
+  currency: z.string(),
+});
+
+export default function DynamicPage() {
+  const fields = [
+    {
+      name: "role",
+      label: "角色",
+      type: "radio",
+      options: [
+        { label: "个人", value: "personal" },
+        { label: "企业", value: "company" },
+      ],
+      defaultValue: "personal",
+    },
+    // 【联动 1】显隐控制：只有企业才显示税号
+    {
+      name: "companyTaxId",
+      label: "税号",
+      type: "input",
+      ifShow: (data) => data.role === "company",
+      required: true, 
+    },
+    {
+      name: "currency",
+      label: "币种",
+      type: "select",
+      options: [{ label: "CNY", value: "CNY" }, { label: "USD", value: "USD" }],
+      defaultValue: "CNY",
+    },
+    // 【联动 2】Label、Props、插槽 全动态
+    {
+      name: "salary",
+      type: "number",
+      // Label 随币种变
+      label: (data) => `期望薪资 (${data.currency})`, 
+      // 后置单位随币种变
+      renderAfter: (data) => data.currency === "USD" ? "美元/年" : "元/月",
+      // Props 随币种变 (美元步进 1000，人民币步进 100)
+      componentProps: (data) => ({
+        step: data.currency === "USD" ? 1000 : 100,
+        prefix: data.currency === "USD" ? "$" : "¥"
+      }),
+    }
+  ];
+
+  return (
+    <SchemaForm 
+      schema={schema} 
+      fields={fields} 
+      onSubmit={console.log} 
+    />
+  );
+}
+```
+
+---
+
+### 场景三：弹窗表单 (Modal 外部提交)
+
+**关键点**：使用 `ref` 获取表单实例，在 Modal 的 `onOk` 中调用 `ref.current.submit()`。
+
+```tsx
+import { useRef, useState } from "react";
+import { Modal, Button, message } from "antd";
+import { z } from "zod";
+import SchemaForm from "@/components/SchemaForm";
+import type { SchemaFormRef } from "@/types/form"; // 引入 Ref 类型定义
+
+const schema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
+export default function ModalExample() {
+  const [open, setOpen] = useState(false);
+  const formRef = useRef<SchemaFormRef>(null); // 1. 创建 Ref
+
+  // 2. 点击 Modal 确定按钮
+  const handleModalOk = () => {
+    // 调用子组件暴露的 submit，会自动触发校验
+    formRef.current?.submit(); 
+  };
+
+  // 3. 校验通过后的回调
+  const onFormSubmit = (data: any) => {
+    console.log("提交数据:", data);
+    message.success("保存成功");
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>打开弹窗</Button>
+      
+      <Modal 
+        open={open} 
+        onOk={handleModalOk} // 绑定提交事件
+        onCancel={() => setOpen(false)} 
+        title="编辑用户"
+      >
+        <SchemaForm
+          ref={formRef} // 绑定 Ref
+          schema={schema}
+          onSubmit={onFormSubmit} // 只有校验通过才会执行这里
+          fields={[
+            { name: "email", label: "邮箱", type: "input" },
+            { name: "password", label: "密码", type: "password" },
+          ]}
+        />
+      </Modal>
+    </>
+  );
+}
+```
+
+---
+
+### 场景四：接入自定义组件
+
+如果内置组件（Input, Select等）不满足需求，可以通过 `type: "custom"` 接入任意 React 组件。
+
+**要求**：自定义组件必须接收 `value` 和 `onChange` props。
+
+```tsx
+// 1. 定义一个自定义组件
+const MyColorPicker = ({ value, onChange }) => (
+  <input 
+    type="color" 
+    value={value || "#ffffff"} 
+    onChange={e => onChange(e.target.value)} 
+  />
+);
+
+// 2. 在配置中使用
+const fields = [
+  {
+    name: "themeColor",
+    label: "主题色",
+    type: "custom", // 标记为自定义
+    component: MyColorPicker, // 传入组件
+    // 你依然可以使用动态逻辑
+    ifShow: (data) => data.enableTheme === true, 
+  }
+];
+```
+
+---
+
+## ❓ 常见问题 (FAQ)
+
+**Q: 为什么 TS 报错 `Spread types may only be created from object types`？**
+A: 泛型 `T` 需要约束为对象。请确保在组件定义时使用了 `<T extends FieldValues>`，而不是 `<T extends any>`。
+
+**Q: `componentProps` 里的属性不支持 TypeScript 提示怎么办？**
+A: 由于 `componentProps` 是为了通用性设计的 `Record<string, any>`，确实会丢失具体的 Antd Props 提示。你可以手动查看 Antd 文档，或者在定义时使用 `as` 断言。
+
+**Q: 怎么做复杂的表单验证（比如 A 字段必须大于 B 字段）？**
+A: 使用 Zod 的 `.refine()` 或 `.superRefine()`。这是 Zod 的强项，不需要在 UI 层处理。
+```typescript
+z.object({
+  min: z.number(),
+  max: z.number(),
+}).refine(data => data.max > data.min, {
+  message: "最大值必须大于最小值",
+  path: ["max"], // 错误显示在 max 字段下
+});
+```

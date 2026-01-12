@@ -1,27 +1,29 @@
-import React from "react";
+import React, { useImperativeHandle, forwardRef } from "react";
 import { useForm, FieldValues, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, Row } from "antd"; // 引入 Antd 布局组件
-import { SchemaFormProps } from "./types";
+import { SchemaFormProps, SchemaFormRef } from "./types";
 import FieldRenderer from "./FieldRenderer";
 
-const SchemaForm = <T extends FieldValues>({
-                                               schema,
-                                               fields,
-                                               defaultValues,
-                                               onSubmit,
-                                               onFieldChange,
-                                               children,
-                                               className = "",
-                                               // 布局默认参数
-                                               layout = "vertical", // 默认 Label 在顶部
-                                               gridCols = 1, // 默认一列
-                                               gutter = 16,  // 默认间距
-                                               labelCol,
-                                               wrapperCol,
-                                           }: SchemaFormProps<T>) => {
+const SchemaFormInner = <T extends FieldValues>(
+    props: SchemaFormProps<T>,
+    ref: React.Ref<SchemaFormRef>
+) => {
+    const {
+        schema,
+        fields,
+        defaultValues,
+        onSubmit,
+        onFieldChange,
+        layout = "vertical",
+        gridCols = 1,
+        gutter = 16,
+        labelCol,
+        wrapperCol,
+        className = "",
+        children, // 如果还需要插槽
+    } = props;
 
-    // 1. 初始化 RHF
     const methods = useForm<T>({
         resolver: zodResolver(schema),
         defaultValues: defaultValues as any,
@@ -29,24 +31,26 @@ const SchemaForm = <T extends FieldValues>({
 
     const { handleSubmit } = methods;
 
-    // 2. 计算默认的 span (Antd 总共24格)
-    // 如果 gridCols=2, 则每个默认 span=12; gridCols=3, span=8
-    const defaultSpan = 24 / gridCols;
+    // 2. 核心：向父组件暴露 submit 方法
+    useImperativeHandle(ref, () => ({
+        submit: () => {
+            // handleSubmit(onSubmit) 返回的是一个函数，
+            // 我们这里直接调用它，React Hook Form 会自动触发校验
+            // 如果校验通过，就会执行 props.onSubmit
+            handleSubmit(onSubmit)();
+        },
+    }));
 
     return (
         <FormProvider {...methods}>
-            {/*
-         Antd Form 组件：
-         component="form": 渲染为原生 <form> 标签
-         layout: 控制 label 位置 (vertical | horizontal | inline)
-         onFinish: 我们这里用原生 onSubmit 代替
-      */}
             <Form
                 component="form"
                 layout={layout}
                 labelCol={labelCol}
                 wrapperCol={wrapperCol}
-                onSubmitCapture={handleSubmit(onSubmit)} // 绑定 RHF 提交
+                // 注意：这里不需要 onSubmitCapture 了，因为是外部触发
+                // 但为了兼容回车提交，保留也无妨
+                onSubmitCapture={handleSubmit(onSubmit)}
                 className={className}
             >
                 <Row gutter={gutter}>
@@ -55,18 +59,20 @@ const SchemaForm = <T extends FieldValues>({
                             key={fieldConfig.name}
                             config={fieldConfig}
                             onFieldChange={onFieldChange}
-                            defaultSpan={defaultSpan}
+                            defaultSpan={24 / gridCols}
                         />
                     ))}
                 </Row>
-
-                {/* 底部插槽 (按钮区) */}
-                <div className="mt-2">
-                    {children}
-                </div>
+                {children}
             </Form>
         </FormProvider>
     );
 };
+
+// 3. 使用 forwardRef 并强制转换类型
+// (这是解决 TypeScript 泛型丢失问题的标准 Hack 写法)
+const SchemaForm = forwardRef(SchemaFormInner) as <T extends FieldValues>(
+    props: SchemaFormProps<T> & { ref?: React.Ref<SchemaFormRef> }
+) => React.ReactElement;
 
 export default SchemaForm;
