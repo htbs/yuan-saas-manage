@@ -31,7 +31,7 @@ export function LoginForm({ onSubmit, loading = false }: LoginFormProps) {
         const loginParams: LoginReqParams = {
           username: username,
           password: hashPasswordMD5UpperCase(password),
-          userType: UserTypeEnum.SYSTEM_USER,
+          userType: UserTypeEnum.YUAN_SHI_USER,
           loginType: LoginTypeEnum.USERNAME_PASSWORD,
         };
         // 登录 : 调用传入的 onSubmit 方法

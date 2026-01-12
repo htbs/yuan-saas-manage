@@ -10,9 +10,7 @@ export interface StorageAuth {
 
 // 用户类型
 export enum UserTypeEnum {
-  SYSTEM_USER = "SYSTEM_USER", // 系统用户
-  CLIENT_USER = "CLIENT_USER", // 客户用户
-  GUEST_USER = "GUEST_USER", // 游客用户
+  YUAN_SHI_USER = "YUAN_SHI_USER", // 系统用户
 }
 
 // 登录类型
