@@ -1,13 +1,18 @@
 "use client";
 
-import { useShopStore, ShopList, ShopDetail } from "@/src/features/shop";
+import {
+  useDictStore,
+  DictDetail,
+  DictList,
+  DictItemList,
+} from "@/src/features/dict";
 import { message } from "antd";
 import { useEffect } from "react";
 
 export default function Shop() {
-  const view = useShopStore((state) => state.view);
-  const id = useShopStore((state) => state.editId);
-  const resetAll = useShopStore((state) => state.resetAll);
+  const view = useDictStore((state) => state.view);
+  const id = useDictStore((state) => state.editId);
+  const resetAll = useDictStore((state) => state.resetAll);
   useEffect(() => {
     return () => {
       resetAll();
@@ -16,10 +21,11 @@ export default function Shop() {
 
   // 定义一个组件映射
   const contentView = {
-    add: <ShopDetail />,
-    detail: id ? <ShopDetail id={id} /> : null,
-    edit: id ? <ShopDetail id={id} /> : null,
-    auth: id ? <ShopDetail id={id} /> : null,
+    add: <DictDetail />,
+    detail: id ? <DictDetail id={id} /> : null,
+    edit: id ? <DictDetail id={id} /> : null,
+    auth: id ? <DictDetail id={id} /> : null,
+    item_list: <DictItemList />,
   };
   // 渲染内容
   const renderContent = () => {
@@ -31,7 +37,7 @@ export default function Shop() {
       message.error("请选择要操作的项");
     }
     // 默认返回列表
-    return <ShopList />;
+    return <DictList />;
   };
   return <div>{renderContent()}</div>;
 }

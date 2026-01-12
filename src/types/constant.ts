@@ -10,9 +10,7 @@ export interface StorageAuth {
 
 // 用户类型
 export enum UserTypeEnum {
-  SYSTEM_USER = "SYSTEM_USER", // 系统用户
-  CLIENT_USER = "CLIENT_USER", // 客户用户
-  GUEST_USER = "GUEST_USER", // 游客用户
+  YUAN_SHI_USER = "YUAN_SHI_USER", // 系统用户
 }
 
 // 登录类型
@@ -75,4 +73,24 @@ export enum ShopTypeEnum {
    * 美容美妆
    */
   BEAUTY = "BEAUTY",
+}
+
+/**
+ * 地址元信息
+ */
+export interface AddressMeta {
+  // 省区划编码
+  provinceCode: string;
+  // 省名称
+  provinceName: string;
+  // 市区划编码
+  cityCode: string;
+  // 市名称
+  cityName: string;
+  // 区划编码
+  districtCode: string;
+  // 区名称
+  districtName: string;
+  // 详细地址
+  detailsAddress: string;
 }

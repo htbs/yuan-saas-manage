@@ -122,6 +122,7 @@ service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     showLoading();
     const url = config.url ?? "";
+    config.headers.set("X-Terminal-Type", "YUAN_SHI_WEB");
     // 白名单直接放过,不增加token
     if (NO_TOKEN_WHITE_LIST.some((p) => url.startsWith(p))) return config;
     const auth: StorageAuth = readTokenFromStorages();

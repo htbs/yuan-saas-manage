@@ -1,6 +1,12 @@
 // 用户相关的接口请求
 import request, { unwrap } from "@src/lib/request";
-import { ShopFilterListParams, PageShop } from "@src/features/shop";
+import {
+  ShopFilterListParams,
+  PageShop,
+  ShopInfo,
+  UpdateOrAddShopInfo,
+} from "@src/features/shop";
+import path from "path";
 
 // 用户登录
 export function findShopPageApi(
@@ -35,5 +41,30 @@ export function unLockShopApi(id: string): Promise<boolean> {
  * @returns true/false
  */
 export function deleteShopApi(id: string): Promise<boolean> {
-  return request.delete<boolean>(`/api/shop/delete/${id}`).then(unwrap);
+  return request.delete<boolean>(`/shop/delete/${id}`).then(unwrap);
+}
+
+/**
+ * 通过ID查询详情
+ */
+export function findShopByIdApi(id: string): Promise<ShopInfo> {
+  return request.get<ShopInfo>(`/shop/get/${id}`).then(unwrap);
+}
+
+/**
+ * 编辑商家详情
+ */
+export function updateShopApi(params: UpdateOrAddShopInfo): Promise<boolean> {
+  return request
+    .post<boolean, UpdateOrAddShopInfo>(`/shop/update`, params)
+    .then(unwrap);
+}
+
+/**
+ * 新增商家
+ */
+export function addShopApi(params: UpdateOrAddShopInfo): Promise<boolean> {
+  return request
+    .post<boolean, UpdateOrAddShopInfo>(`/shop/add`, params)
+    .then(unwrap);
 }

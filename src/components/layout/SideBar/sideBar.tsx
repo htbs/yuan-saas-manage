@@ -67,6 +67,10 @@ const menuList: MenuItemType[] = [
         key: "sysRoleManage",
         label: "角色管理",
       },
+      {
+        key: "sysDictManage",
+        label: "字典管理",
+      },
     ],
   },
 ];
