@@ -1,21 +1,20 @@
+import { useDictItemList } from "@/src/features/dict/components/item/DictItemList/useDictItemList";
+import { useDictItemStore } from "../../../stores/useDictItemStore";
 import {
   baseColumns,
-  DictFilterListParams,
-  useDictStore,
-  useDictList,
   searchFields,
-} from "@/src/features/dict";
+} from "../../../components/item/DictItemList/DictItemList.types";
 
 import { Button, Space } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import GenericFilterableList from "@/src/components/GenericFilterableList/GenericFilterableList";
-import { DictInfo } from "../../../types";
+import { DictItemFilterListParams, DictItemInfo } from "../../../types";
 
-export function DictList() {
+export function DictItemList() {
   const { finalAllColumns, fetchList, handleSetRefetch } =
-    useDictList(baseColumns);
+    useDictItemList(baseColumns);
   const { pagination, setPagination, setQueryParams, resetAll, setView } =
-    useDictStore();
+    useDictItemStore();
   const renderSearchActions = () => {
     return (
       <Space>
@@ -27,7 +26,7 @@ export function DictList() {
   };
   return (
     <div>
-      <GenericFilterableList<DictInfo, DictFilterListParams>
+      <GenericFilterableList<DictItemInfo, DictItemFilterListParams>
         columns={finalAllColumns}
         searchFields={searchFields}
         fetcher={fetchList}

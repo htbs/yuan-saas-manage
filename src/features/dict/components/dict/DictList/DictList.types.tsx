@@ -11,35 +11,32 @@ export const searchFields: FormFieldConfig[] = [
     label: "所属平台",
     type: "select",
     options: [
-      { value: "COMMON", label: "未签约" },
-      { value: "SIGNED", label: "已签约" },
-      { value: "EXPIRED", label: "已到期" },
+      { value: "YUAN_SHI", label: "元识管理端" },
+      { value: "MERCHANT", label: "商家端" },
+      { value: "CLIENT", label: "用户端" },
     ],
   },
 ];
 
 // 表格列配置
 export const baseColumns: ColumnType<DictInfo>[] = [
-  { title: "店铺编号", dataIndex: "code", key: "code" },
-  { title: "店铺名称", dataIndex: "name", key: "name" },
+  { title: "字典编号", dataIndex: "code", key: "code" },
+  { title: "字典名称", dataIndex: "name", key: "name" },
   {
-    title: "店铺类型",
+    title: "字典类型",
     dataIndex: "type",
     key: "type",
   },
   {
-    title: "签约状态",
-    dataIndex: "signedStatus",
-    key: "depsignedStatustName",
+    title: "字典状态",
+    dataIndex: "status",
+    key: "status",
     render: (value) => {
-      if (value === "SIGNED") return "已签约";
-      if (value === "UNSIGNED") return "未签约";
-      if (value === "EXPIRED") return "已到期";
+      if (value === "Y") return "禁用";
+      if (value === "N") return "启用";
     },
   },
-  { title: "签约时间", dataIndex: "signedStartAt", key: "signedStartAt" },
-  { title: "到期时间", dataIndex: "signedEndAt", key: "signedEndAt" },
+  { title: "备注", dataIndex: "remark", key: "remark" },
   { title: "创建时间", dataIndex: "createAt", key: "createAt" },
-  { title: "锁定状态", dataIndex: "lockStatus", key: "lockStatus" },
   { title: "操作", dataIndex: "action", key: "action", width: 170 },
 ];

@@ -1,43 +1,41 @@
 // 详情、修改、新增
 import DetailHeader from "@src/components/layout/Detailheader/index";
-import { useDictStore } from "../../../stores/useDictStore";
+import { useDictItemStore } from "../../../stores/useDictItemStore";
 import { useState, useEffect } from "react";
-import { DictInfo } from "../../../types";
-import {
-  addDictApi,
-  findDictByIdApi,
-  updateDictApi,
-} from "@src/services/dict.service";
+import { DictItemInfo } from "../../../types";
+import { addDictItemApi, updateDictItemApi } from "@src/services/dict.service";
 import message from "antd/lib/message";
 import { Form, Input } from "antd";
 
 interface DictDetailProps {
   id?: string;
+  dictType: string; // 字典类型
+  dictLabel: string; // 项名称
+  dictValue: string; // 项值
+  status: string; // 状态
+  sort: number; // 排序
+  remark: string; // 备注
 }
 
-export function DictDetail(props: DictDetailProps) {
+export function DictItemDetail(props: DictDetailProps) {
   const [loading, setLoading] = useState(false);
 
   // 详情ID
-  const dictId = useDictStore((state) => state.editId);
+  const dictId = useDictItemStore((state) => state.editId);
   // 设置详情视图
-  const setView = useDictStore((state) => state.setView);
+  const setView = useDictItemStore((state) => state.setView);
   // 详情视图
-  const view = useDictStore((state) => state.view);
+  const view = useDictItemStore((state) => state.view);
   // 绑定form
   const [form] = Form.useForm();
 
   useEffect(() => {
     if (view && dictId) {
-      (async () => {
-        const dictInfo: DictInfo = await findDictByIdApi(dictId);
-        // 这里通过查出来的信息绑定form
-        form.setFieldsValue(dictInfo);
-      })();
+      form.setFieldsValue(props);
     }
-  }, [view, dictId, form]);
+  }, [view, dictId, form, props]);
 
-  const handleSubmit = async (params: DictInfo) => {
+  const handleSubmit = async (params: DictItemInfo) => {
     try {
       if (view && view === "edit") {
         if (!dictId) {
@@ -46,10 +44,10 @@ export function DictDetail(props: DictDetailProps) {
         }
         params.id = dictId;
         // 编辑用户
-        await updateDictApi(params);
+        await updateDictItemApi(params);
       } else if (view && view === "add") {
         // 新增用户
-        await addDictApi(params);
+        await addDictItemApi(params);
       }
       setView("list");
     } catch (err: unknown) {}
