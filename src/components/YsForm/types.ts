@@ -50,9 +50,12 @@ export interface SchemaFormProps<T extends FieldValues> {
     fields: FormFieldConfig<T>[];
     defaultValues?: Partial<T>;
     onSubmit: (data: T) => void;
+    // 字段变化
     onFieldChange?: (name: Path<T>, value: any, allValues: T) => void;
-
+    // 加载状态
     loading?: boolean;
+    // 只读状态
+    readonly?: boolean;
     children?: ReactNode;
     className?: string;
 
@@ -63,6 +66,9 @@ export interface SchemaFormProps<T extends FieldValues> {
     gridCols?: number; // 默认每行几列 (用于计算默认 span)
     gutter?: number | [number, number]; // 栅格间距
 }
-export interface SchemaFormRef {
+export interface SchemaFormRef<T = any> {
+    // 提交数据
     submit: () => void;
+    // 重置表单/回显数据
+    reset: (data?: T | Partial<T>) => void;
 }

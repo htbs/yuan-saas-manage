@@ -15,12 +15,14 @@ interface FieldRendererProps<T extends FieldValues> {
     config: FormFieldConfig<T>;
     onFieldChange?: (...args: any[]) => void;
     defaultSpan?: number; // 根据 gridCols 计算出的默认 span
+    readonly?: boolean, // 接收全局只读状态y
 }
 
 const FieldRenderer = <T extends FieldValues>({
                                           config,
                                           onFieldChange,
                                           defaultSpan = 24,
+                                          readonly = false,
                                       }: FieldRendererProps<T>) => {
     // 1. 使用 Context 获取状态，不再需要父组件传 props
     const { control, formState: { errors } } = useFormContext();
@@ -30,8 +32,11 @@ const FieldRenderer = <T extends FieldValues>({
     const isVisible = resolveDynamic(config.ifShow, formValues) ?? true;
     if (!isVisible) return null;
 
+    // 如果全局是 readonly，则强制 disabled。 否则，使用配置中的 disabled (动态或静态)
+    const configDisabled = resolveDynamic(config.disabled, formValues) ?? false;
+    const disabled = readonly || configDisabled;
+
     const span = resolveDynamic(config.span, formValues) ?? defaultSpan;
-    const disabled = resolveDynamic(config.disabled, formValues) ?? false;
     const isRequired = resolveDynamic(config.required, formValues) ?? false;
     const label = resolveDynamic(config.label, formValues);
     const componentProps = resolveDynamic(config.componentProps, formValues) || {};

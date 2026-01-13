@@ -21,6 +21,7 @@ const SchemaFormInner = <T extends FieldValues>(
         labelCol,
         wrapperCol,
         className = "",
+        readonly = false,
         children, // 如果还需要插槽
     } = props;
 
@@ -29,9 +30,8 @@ const SchemaFormInner = <T extends FieldValues>(
         defaultValues: defaultValues as any,
     });
 
-    const { handleSubmit } = methods;
-
-    // 2. 核心：向父组件暴露 submit 方法
+    const { handleSubmit, reset } = methods; // 取出 reset
+    // 2. 向父组件暴露方法
     useImperativeHandle(ref, () => ({
         submit: () => {
             // handleSubmit(onSubmit) 返回的是一个函数，
@@ -39,6 +39,7 @@ const SchemaFormInner = <T extends FieldValues>(
             // 如果校验通过，就会执行 props.onSubmit
             handleSubmit(onSubmit)();
         },
+        reset: (data) => reset(data),
     }));
 
     return (
@@ -48,8 +49,6 @@ const SchemaFormInner = <T extends FieldValues>(
                 layout={layout}
                 labelCol={labelCol}
                 wrapperCol={wrapperCol}
-                // 注意：这里不需要 onSubmitCapture 了，因为是外部触发
-                // 但为了兼容回车提交，保留也无妨
                 onSubmitCapture={handleSubmit(onSubmit)}
                 className={className}
             >
@@ -58,6 +57,7 @@ const SchemaFormInner = <T extends FieldValues>(
                         <FieldRenderer
                             key={fieldConfig.name}
                             config={fieldConfig}
+                            readonly={readonly}
                             onFieldChange={onFieldChange}
                             defaultSpan={24 / gridCols}
                         />
