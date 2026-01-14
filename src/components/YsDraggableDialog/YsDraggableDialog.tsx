@@ -153,21 +153,6 @@ export const YsDraggableDialog: React.FC<DraggableDialogProps> = ({
   const preMinimizeModeRef = useRef<DialogMode>("NORMAL");
 
   // 每次打开时重新初始化位置（可选，这里保留上次关闭的位置，如果需要重置可以在 useEffect[visible] 里处理）
-  // useEffect(() => {
-  //   if (visible) {
-  //     // 保证初始位置居中
-  //     if (!initialBoundsRef.current) {
-  //       const iBounds = {
-  //         x: (window.innerWidth - initialWidth) / 2,
-  //         y: (window.innerHeight - initialHeight) / 2,
-  //         width: initialWidth,
-  //         height: initialHeight,
-  //       };
-  //       initialBoundsRef.current = iBounds;
-  //       setBounds(iBounds);
-  //     }
-  //   }
-  // }, [visible, initialWidth, initialHeight]);
   useEffect(() => {
     // 只在客户端执行
     if (typeof window === "undefined") return;
@@ -186,12 +171,6 @@ export const YsDraggableDialog: React.FC<DraggableDialogProps> = ({
       }
     }
   }, [visible, initialWidth, initialHeight]);
-
-  // // 确保只在客户端渲染
-  // if (!mounted) {
-  //   return null;
-  // }
-
   // --- 逻辑处理 ---
 
   // 1. 拖拽逻辑
