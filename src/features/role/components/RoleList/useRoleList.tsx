@@ -7,7 +7,6 @@ import {
   FixedActionItem,
   createLinkColumn,
 } from "@/src/lib/utils/tableColumns";
-import { useRoleStore } from "../../stores/useRoleStore";
 import { message, Popconfirm } from "antd";
 import { RoleInfo, RoleFilterListParams } from "../../types";
 export const useRoleList = (baseColumns: ColumnType<RoleInfo>[]) => {
@@ -17,8 +16,6 @@ export const useRoleList = (baseColumns: ColumnType<RoleInfo>[]) => {
     return { list: result.content, total: result.totalElements };
   }, []);
 
-  const setView = useRoleStore((state) => state.setView);
-
   // 使用 useRef 存储 refetch 函数
   const [refetcher, setRefetcher] = useState<() => void>(() => () => {});
   // 设置回调函数，将 refetch 存入 ref
@@ -26,13 +23,29 @@ export const useRoleList = (baseColumns: ColumnType<RoleInfo>[]) => {
     setRefetcher(() => fn); // 注意：设置函数需要用函数式更新
   }, []);
 
+  // 1. 内部集成弹窗状态
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    mode: "add" | "edit" | "detail";
+    id?: string; // 数据ID
+  }>({ isOpen: false, mode: "add", id: "" });
+
+  // 2. 定义打开逻辑
+  const openDialog = (mode: "add" | "edit" | "detail", id?: string) => {
+    setDialogState({ isOpen: true, mode, id });
+  };
+
+  // 3. 定义关闭逻辑
+  const closeDialog = () =>
+    setDialogState((prev) => ({ ...prev, isOpen: false }));
+
   const finalColumns = useMemo(() => {
     // 创建操作列
     const fixedActionItems: FixedActionItem<RoleInfo>[] = [
       {
         label: "编辑",
         onClick: (record) => {
-          setView("edit", record.id);
+          openDialog("edit", record.id);
         },
         type: "primary",
       },
@@ -42,10 +55,10 @@ export const useRoleList = (baseColumns: ColumnType<RoleInfo>[]) => {
         type: "primary",
         label: (record) => (
           <Popconfirm
-            title={`确定删除${record.name}吗?`}
+            title={`确定删除吗?`}
             onConfirm={async () => {
               await deleteRoleApi(record.id);
-              message.success(`删除+${record.name}成功`);
+              message.success(`删除成功`);
               refetcher?.();
             }}
           >
@@ -61,7 +74,7 @@ export const useRoleList = (baseColumns: ColumnType<RoleInfo>[]) => {
       {
         key: "resetPassword",
         label: "授权",
-        onClick: (record) => setView("auth", record.id),
+        onClick: (record) => openDialog("auth", record.id),
       },
     ];
 
@@ -72,7 +85,7 @@ export const useRoleList = (baseColumns: ColumnType<RoleInfo>[]) => {
         return createLinkColumn<RoleInfo>(
           "name",
           (col.title as string) || "角色名称",
-          (record) => setView("detail", record.id),
+          (record) => openDialog("detail", record.id),
           { ...col } // 继承原有的 width, fixed 等配置
         );
       }
@@ -90,11 +103,17 @@ export const useRoleList = (baseColumns: ColumnType<RoleInfo>[]) => {
       // 其他列：保持原样
       return col;
     });
-  }, [baseColumns, refetcher, setView]);
+  }, [baseColumns, refetcher]);
 
   return {
     finalColumns,
     fetchList,
     handleSetRefetch,
+    openAdd: () => openDialog("add"),
+    dialogProps: {
+      ...dialogState,
+      onClose: closeDialog,
+      onSuccess: () => handleSetRefetch, // 假设你已有刷新方法
+    },
   };
 };
