@@ -10,9 +10,9 @@ export enum RoutesEnum {
   worksManagement = "/worksManagement", //作品管理
   category = "/category", //作品分类
   sysManage = "/sysManage", //系统管理
-  sysUserManage = "/sysManage/user?view=list", // 系统用户管理
-  sysRoleManage = "/sysManage/role?view=list", // 系统角色管理
-  sysDictManage = "/sysManage/dict?view=list", // 系统字典管理
+  sysUserManage = "/sysManage/user", // 系统用户管理
+  sysRoleManage = "/sysManage/role", // 系统角色管理
+  sysDictManage = "/sysManage/dict", // 系统字典管理
 }
 
 //路由的类型

@@ -27,11 +27,11 @@ export type PageRole = Page<RoleInfo>;
  * 修改角色参数
  */
 export interface UpdateOrAddRoleParams {
-  id: string; // 角色ID
-  name?: string; // 角色名称
+  id?: string; // 角色ID
+  name: string; // 角色名称
   description?: string; // 角色描述
-  deptId?: string; // 部门ID
-  merchantCode?: string; // 商家编码
+  // deptId?: string; // 部门ID
+  // merchantCode?: string; // 商家编码
 }
 
 /**

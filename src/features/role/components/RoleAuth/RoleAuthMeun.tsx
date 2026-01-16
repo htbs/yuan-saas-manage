@@ -1,15 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
-import { Card, Tree, Button, Space, message, Spin, Divider } from "antd";
-import {
-  SaveOutlined,
-  ReloadOutlined,
-  CheckSquareOutlined,
-  BorderOutlined,
-} from "@ant-design/icons";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { Tree, Button, Space, message, Spin } from "antd";
 import type { TreeDataNode, TreeProps } from "antd";
-import { useRoleStore } from "@/src/features/role";
 import {
   getAuthMenuByUserIdApi,
   getAuthMenuByRoleIdApi,
@@ -18,17 +11,19 @@ import { RoleAuthMenuParams } from "@/src/features/role/types";
 import { roleAuthMenuApi } from "@/src/services/role.service";
 import { readLocalUserInfo } from "@/src/lib/utils/authUtil";
 import { MenuInfo } from "@src/features/menu/types";
+import { YsDraggableDialog } from "@/src/components/YsDraggableDialog/YsDraggableDialog";
 
-const RoleAuth: React.FC = () => {
-  const setView = useRoleStore((state) => state.setView);
-  const roleId = useRoleStore((state) => state.editId);
+export const RoleAuthMenu = (props: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  roleId: string;
+}) => {
   const [loading, setLoading] = useState(false);
-  const [saveLoading, setSaveLoading] = useState(false);
-
-  // 数据状态
   const [menuTree, setMenuTree] = useState<TreeDataNode[]>([]);
   const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
   const [halfCheckedKeys, setHalfCheckedKeys] = useState<React.Key[]>([]);
+  const [isCheckAll, setIsCheckAll] = useState(false); // 是否全选
 
   // 用于全选逻辑：获取所有节点的 Key
   const allNodeKeys = useMemo(() => {
@@ -42,12 +37,6 @@ const RoleAuth: React.FC = () => {
     traverse(menuTree);
     return keys;
   }, [menuTree]);
-
-  // 1. 初始化加载
-  useEffect(() => {
-    loadData();
-  }, []);
-
   /** 把 MenuInfo 树转成 AntD Tree 需要的 TreeDataNode */
   const convertTree = (
     list: MenuInfo[],
@@ -73,18 +62,18 @@ const RoleAuth: React.FC = () => {
   };
 
   // 查询当前用户可访问的菜单与当前选择角色的菜单进行合并设置是否已选，最终以当前用户的为主
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const user = readLocalUserInfo();
       if (!user) return message.error("未获取到用户,请重新登录后重试。");
 
-      if (!roleId) return message.error("请选择要授权的角色");
+      if (!props.roleId) return message.error("请选择要授权的角色");
 
       // 并行获取当前登录人的菜单和当前选择角色的菜单
       const [userAuthMenuTree, roleAuthMenuTree] = await Promise.all([
         getAuthMenuByUserIdApi(user.id),
-        getAuthMenuByRoleIdApi(roleId),
+        getAuthMenuByRoleIdApi(props.roleId),
       ]);
 
       // 角色菜单 id 集合（用于快速比对）
@@ -101,8 +90,14 @@ const RoleAuth: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [props.roleId]);
 
+  // 1. 初始化加载
+  useEffect(() => {
+    if (!props.isOpen) return;
+    const id = requestAnimationFrame(loadData);
+    return () => cancelAnimationFrame(id); // 清除动画帧
+  }, [props.isOpen, loadData]);
   // 2. 勾选逻辑
   const onCheck: TreeProps["onCheck"] = (checked, info) => {
     if (Array.isArray(checked)) {
@@ -113,101 +108,57 @@ const RoleAuth: React.FC = () => {
     }
   };
 
-  // 3. 全选 / 全不选
-  const handleSelectAll = () => setCheckedKeys(allNodeKeys);
-  const handleClearAll = () => {
-    setCheckedKeys([]);
-    setHalfCheckedKeys([]);
+  // 处理全选选或全不选
+  const handleAllCheckToggle = () => {
+    if (isCheckAll) {
+      // 取消全选
+      setCheckedKeys([]);
+      setHalfCheckedKeys([]);
+    } else {
+      // 全选
+      setCheckedKeys(allNodeKeys);
+    }
+    setIsCheckAll(!isCheckAll);
   };
 
   // 4. 保存提交
   const handleSave = async () => {
-    setSaveLoading(true);
     try {
       // 合并全选和半选，确保后端能拿到完整的树路径
       const finalKeys = Array.from(
         new Set([...checkedKeys, ...halfCheckedKeys])
       ).map(String);
-      if (!roleId) return message.error("请选择要授权角色");
       const params: RoleAuthMenuParams = {
-        roleId,
+        roleId: props.roleId,
         menuIds: finalKeys,
       };
       await roleAuthMenuApi(params);
-      console.log("提交的权限数据:", finalKeys);
-      // await api.saveRolePermissions(roleId, finalKeys);
-      message.success("角色权限配置已保存");
+      props.onClose();
     } catch (e) {
       message.error("保存失败");
-    } finally {
-      setSaveLoading(false);
     }
   };
-
   return (
     <div>
-      <Card
-        title={
-          <span className="text-lg font-bold">角色权限设置 - 超级管理员</span>
-        }
-        extra={
-          <Space>
-            <Button icon={<ReloadOutlined />} onClick={loadData}>
-              刷新
-            </Button>
-            <Button
-              type="primary"
-              icon={<SaveOutlined />}
-              loading={saveLoading}
-              onClick={handleSave}
-            >
-              保存更改
-            </Button>
-            <Button
-              type="primary"
-              icon={<SaveOutlined />}
-              onClick={() => setView("list")}
-            >
-              取消
-            </Button>
-          </Space>
+      <YsDraggableDialog
+        title="角色权限配置"
+        onClose={props.onClose}
+        initialWidth={600}
+        initialHeight={400}
+        visible={props.isOpen}
+        footer={
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+            <Space>
+              <Button onClick={handleAllCheckToggle}>全选/全不选</Button>
+              <Button type="primary" onClick={handleSave}>
+                保存
+              </Button>
+              <Button onClick={props.onClose}>取消</Button>
+            </Space>
+          </div>
         }
       >
-        {/* 操作工具栏 */}
-        <div className="flex justify-between items-center mb-4 p-3">
-          <Space split={<Divider type="vertical" />}>
-            <span className="text-gray-600">快速操作：</span>
-            <Button
-              type="link"
-              icon={<CheckSquareOutlined />}
-              onClick={handleSelectAll}
-              className="p-0"
-            >
-              全选所有菜单
-            </Button>
-            <Button
-              type="link"
-              danger
-              icon={<BorderOutlined />}
-              onClick={handleClearAll}
-              className="p-0"
-            >
-              取消所有勾选
-            </Button>
-            <div className="text-sm text-gray-500">
-              已选择{" "}
-              <span className="text-blue-600 font-bold">
-                {checkedKeys.length}
-              </span>{" "}
-              个权限节点
-            </div>
-          </Space>
-        </div>
-
-        <Divider />
-
-        {/* 树形内容区 */}
-        <Spin spinning={loading}>
+        <Spin spinning={false}>
           <div className="max-w-4xl mx-auto py-4">
             <Tree
               checkable
@@ -221,9 +172,9 @@ const RoleAuth: React.FC = () => {
             />
           </div>
         </Spin>
-      </Card>
+      </YsDraggableDialog>
     </div>
   );
 };
 
-export default RoleAuth;
+export default RoleAuthMenu;

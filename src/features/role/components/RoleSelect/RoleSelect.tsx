@@ -1,11 +1,9 @@
 // 角色下拉框
 
 import React from "react";
-import { Select, Tag, Space, Typography } from "antd";
+import { Select } from "antd";
 import type { SelectProps } from "antd";
 import { useRoles } from "./useRolesSelect";
-
-const { Text } = Typography;
 
 interface RoleSelectProps extends Omit<SelectProps, "options" | "loading"> {
   scope?: "platform" | "merchant";

@@ -1,120 +1,129 @@
-import {
-  Form,
-  Typography,
-  Button,
-  Row,
-  Col,
-  Input,
-  Space,
-  Card,
-  message,
-} from "antd";
+import { Button } from "antd";
 
-import { useRoleStore } from "../../stores/useRoleStore";
 import { UpdateOrAddRoleParams } from "../../types";
 import {
   getRoleByIdApi,
   saveRoleApi,
   updateRoleApi,
 } from "@/src/services/role.service";
-import { useEffect } from "react";
+import { useRef, useEffect } from "react";
+
+import { YsDraggableDialog } from "@src/components/YsDraggableDialog/YsDraggableDialog";
+import SchemaForm from "@src/components/YsForm/index";
+import { FormFieldConfig, SchemaFormRef } from "@src/components/YsForm/types";
+import { z } from "zod";
 
 interface RoleDetailProps {
   id?: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  mode: "add" | "edit" | "detail";
 }
-const Title = Typography.Title;
-export function RoleDetail(props: RoleDetailProps) {
-  const setView = useRoleStore((state) => state.setView);
-  const id = useRoleStore((state) => state.editId);
-  const view = useRoleStore((state) => state.view);
-  const [form] = Form.useForm();
 
-  useEffect(() => {
-    if (view && id) {
-      (async () => {
-        const roleInfo = await getRoleByIdApi(id);
-        form.setFieldsValue(roleInfo);
-      })();
-    }
-  }, [view, id, form]);
+// 1. Zod Schema, 校验规则
+const formSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(2, "请填写角色名称").max(8, "角色名称不能超过8个字符"),
+  description: z.string().max(200, "角色描述不能超过200个字符").optional(),
+});
 
-  const onFinish = async (params: UpdateOrAddRoleParams) => {
-    try {
-      if (view && view === "edit") {
-        if (!id) {
-          message.error("请选择要编辑的角色");
-          return;
-        }
-        params.id = id;
-        // 编辑用户
-        await updateRoleApi(params);
-      } else if (view && view === "add") {
-        // 新增用户
-        await saveRoleApi(params);
-      }
-      setView("list");
-    } catch (err: unknown) {}
+export function RoleEditDialog(props: RoleDetailProps) {
+  console.log("isOpen && id:", props.isOpen && props.id);
+  const formRef = useRef<SchemaFormRef>(null);
+  // 1. 创建 Ref
+  const handleOk = () => {
+    // 3. 点击 Modal 确定按钮时，调用子组件的 submit
+    // 这会自动触发 RHF 的校验，如果有错误，表单会显示红字，
+    // 且不会执行下面的 handleFormSubmit
+    formRef.current?.submit();
   };
 
+  // 4. 表单验证通过后，才会执行这个回调
+  const handleFormSubmit = (data: UpdateOrAddRoleParams) => {
+    if (props.mode === "add") {
+      saveRoleApi(data).then((res) => {
+        if (res) {
+          props.onClose();
+          props.onSuccess();
+        }
+      });
+    } else if (props.mode === "edit" && props.id) {
+      data.id = props.id;
+      updateRoleApi(data).then((res) => {
+        if (res) {
+          props.onClose();
+          props.onSuccess();
+        }
+      });
+    }
+  };
+
+  type FormData = z.infer<typeof formSchema>;
+
+  // 2. 字段配置
+  const fields: FormFieldConfig<FormData>[] = [
+    {
+      name: "name",
+      label: "角色名称",
+      type: "input",
+      // required: true 只是为了显示红星，实际校验看 Zod
+      required: true,
+      placeholder: "请输入",
+    },
+    {
+      name: "description",
+      label: "角色描述",
+      type: "input",
+      required: false,
+    },
+  ];
+
+  // 监听 isOpen 变化
+  useEffect(() => {
+    // 只有当弹窗打开，且 ref 存在时才执行
+    if (props.isOpen && props.id && formRef.current) {
+      // 调用接口获取数据并回填
+      getRoleByIdApi(props.id).then((roleInfo) => {
+        requestAnimationFrame(() => {
+          formRef.current?.reset(roleInfo);
+        });
+      });
+    }
+  }, [props.isOpen, props.id]); // 依赖项数组中放入 isOpen
+
   return (
-    <div className="w-full!">
-      <Card>
-        <Title level={5}>基本详情</Title>
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={onFinish}
-          autoComplete="off"
-          disabled={view === "detail"}
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                label="角色名称"
-                name="name"
-                rules={[
-                  { required: true, message: "请输入" },
-                  {
-                    max: 8,
-                    min: 2,
-                    message: "角色名称必须在2-8个字之间",
-                  },
-                ]}
-              >
-                <Input placeholder="请输入角色名称" />
-              </Form.Item>
-
-              <Form.Item
-                label="角色描述"
-                name="description"
-                rules={[{ required: true, message: "请输入" }]}
-              >
-                <Input placeholder="请输入角色描述" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          {/* ---------- 底部：提交按钮 ---------- */}
-          <Row>
-            <Col span={24} style={{ textAlign: "center", marginTop: 24 }}>
-              <Space>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  size="large"
-                  onClick={() => setView("list")}
-                  disabled={false}
-                >
-                  返回
-                </Button>
-                <Button type="primary" htmlType="submit" size="large">
-                  提交
-                </Button>
-              </Space>
-            </Col>
-          </Row>
-        </Form>
-      </Card>
+    <div>
+      <YsDraggableDialog
+        visible={props.isOpen}
+        title={
+          props.mode === "add"
+            ? "新增角色"
+            : props.mode === "edit"
+            ? "编辑角色"
+            : "详情"
+        }
+        onClose={props.onClose}
+        initialWidth={600}
+        initialHeight={400}
+        footer={
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+            <Button type="primary" onClick={handleOk}>
+              确定
+            </Button>
+            <Button onClick={props.onClose}>取消</Button>
+          </div>
+        }
+      >
+        <SchemaForm
+          ref={formRef}
+          schema={formSchema}
+          fields={fields}
+          readonly={props.mode === "detail"}
+          onSubmit={handleFormSubmit}
+          layout="horizontal"
+        />
+      </YsDraggableDialog>
     </div>
   );
 }

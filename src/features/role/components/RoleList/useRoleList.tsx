@@ -1,5 +1,5 @@
 import { ColumnType } from "antd/es/table";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { findPageRoolListApi, deleteRoleApi } from "@/src/services";
 import { ActionItem } from "@/src/components/ui/dropdown/MoreActionsDropdown";
 import {
@@ -31,13 +31,31 @@ export const useRoleList = (baseColumns: ColumnType<RoleInfo>[]) => {
   }>({ isOpen: false, mode: "add", id: "" });
 
   // 2. 定义打开逻辑
-  const openDialog = (mode: "add" | "edit" | "detail", id?: string) => {
-    setDialogState({ isOpen: true, mode, id });
-  };
+  const openDialog = useCallback(
+    (mode: "add" | "edit" | "detail", id?: string) => {
+      console.log("Hook: openDialog triggered", { mode, id });
+      setDialogState({ isOpen: true, mode, id });
+    },
+    []
+  );
 
   // 3. 定义关闭逻辑
-  const closeDialog = () =>
+  const closeDialog = useCallback(() => {
     setDialogState((prev) => ({ ...prev, isOpen: false }));
+  }, []);
+
+  // 定义授权的Dialog逻辑
+  const [authMenuDialogState, setAuthDialogState] = useState<{
+    isOpen: boolean;
+    mode: "authMenu";
+    roleId: string; // 数据ID
+  }>({ isOpen: false, mode: "authMenu", roleId: "" });
+  const openAuthMenuDialog = useCallback((mode: "authMenu", roleId: string) => {
+    setAuthDialogState({ isOpen: true, mode, roleId });
+  }, []);
+  const closeAuthMenuDialog = useCallback(() => {
+    setAuthDialogState((prev) => ({ ...prev, isOpen: false }));
+  }, []);
 
   const finalColumns = useMemo(() => {
     // 创建操作列
@@ -72,9 +90,9 @@ export const useRoleList = (baseColumns: ColumnType<RoleInfo>[]) => {
     // 授权
     const authAction: ActionItem<RoleInfo>[] = [
       {
-        key: "resetPassword",
-        label: "授权",
-        onClick: (record) => openDialog("auth", record.id),
+        key: "authMenu",
+        label: "授权菜单",
+        onClick: (record) => openAuthMenuDialog("authMenu", record.id),
       },
     ];
 
@@ -103,7 +121,7 @@ export const useRoleList = (baseColumns: ColumnType<RoleInfo>[]) => {
       // 其他列：保持原样
       return col;
     });
-  }, [baseColumns, refetcher]);
+  }, [baseColumns, openDialog, refetcher, openAuthMenuDialog]);
 
   return {
     finalColumns,
@@ -113,7 +131,12 @@ export const useRoleList = (baseColumns: ColumnType<RoleInfo>[]) => {
     dialogProps: {
       ...dialogState,
       onClose: closeDialog,
-      onSuccess: () => handleSetRefetch, // 假设你已有刷新方法
+      onSuccess: () => refetcher?.(), // 刷新列表方法
+    },
+    authMenuDialogProps: {
+      ...authMenuDialogState,
+      onClose: closeAuthMenuDialog,
+      onSuccess: () => refetcher?.(), // 刷新列表
     },
   };
 };

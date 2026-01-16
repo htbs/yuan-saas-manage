@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import type { RoleInfo } from "../../types";
 import { findPageRoolListApi } from "@src/services";
-import { RoleFilterListParams } from "../RoleList/RoleList.types";
+import { RoleFilterListParams } from "../../types";
 
 export const useRoles = (scope?: "platform" | "merchant") => {
   const [roles, setRoles] = useState<RoleInfo[]>([]);
