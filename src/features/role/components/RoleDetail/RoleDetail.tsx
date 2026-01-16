@@ -14,7 +14,7 @@ import { FormFieldConfig, SchemaFormRef } from "@src/components/YsForm/types";
 import { z } from "zod";
 
 interface RoleDetailProps {
-  id?: string;
+  roleId?: string;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
@@ -29,7 +29,6 @@ const formSchema = z.object({
 });
 
 export function RoleEditDialog(props: RoleDetailProps) {
-  console.log("isOpen && id:", props.isOpen && props.id);
   const formRef = useRef<SchemaFormRef>(null);
   // 1. 创建 Ref
   const handleOk = () => {
@@ -40,22 +39,16 @@ export function RoleEditDialog(props: RoleDetailProps) {
   };
 
   // 4. 表单验证通过后，才会执行这个回调
-  const handleFormSubmit = (data: UpdateOrAddRoleParams) => {
+  const handleFormSubmit = async (data: UpdateOrAddRoleParams) => {
+    const api = props.mode === "add" ? saveRoleApi : updateRoleApi;
     if (props.mode === "add") {
-      saveRoleApi(data).then((res) => {
-        if (res) {
-          props.onClose();
-          props.onSuccess();
-        }
-      });
-    } else if (props.mode === "edit" && props.id) {
-      data.id = props.id;
-      updateRoleApi(data).then((res) => {
-        if (res) {
-          props.onClose();
-          props.onSuccess();
-        }
-      });
+      data.id = props.roleId;
+    }
+
+    const res = await api(data);
+    if (res) {
+      props.onClose();
+      props.onSuccess();
     }
   };
 
@@ -81,16 +74,15 @@ export function RoleEditDialog(props: RoleDetailProps) {
 
   // 监听 isOpen 变化
   useEffect(() => {
-    // 只有当弹窗打开，且 ref 存在时才执行
-    if (props.isOpen && props.id && formRef.current) {
-      // 调用接口获取数据并回填
-      getRoleByIdApi(props.id).then((roleInfo) => {
-        requestAnimationFrame(() => {
-          formRef.current?.reset(roleInfo);
-        });
+    if (!props.isOpen || !props.roleId || props.mode === "add") return;
+
+    // 调用接口获取数据并回填
+    getRoleByIdApi(props.roleId).then((roleInfo) => {
+      requestAnimationFrame(() => {
+        formRef.current?.reset(roleInfo);
       });
-    }
-  }, [props.isOpen, props.id]); // 依赖项数组中放入 isOpen
+    });
+  }, [props.isOpen, props.roleId, props.mode]); // 依赖项数组中放入 isOpen
 
   return (
     <div>

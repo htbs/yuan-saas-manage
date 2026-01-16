@@ -1,8 +1,6 @@
 import { useRoleList } from "./useRoleList";
 import { baseColumns, searchFields } from "./RoleList.types";
 import { RoleInfo, RoleFilterListParams } from "../../types";
-import { Button, Space } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
 import GenericFilterableList from "@/src/components/GenericFilterableList/GenericFilterableList";
 import { RoleEditDialog } from "../RoleDetail/RoleDetail";
 import { RoleAuthMenu } from "../RoleAuth/RoleAuthMeun";
@@ -12,19 +10,10 @@ export function RoleList() {
     finalColumns,
     fetchList,
     handleSetRefetch,
-    openAdd,
+    addAction,
     dialogProps,
     authMenuDialogProps,
   } = useRoleList(baseColumns);
-  const renderSearchActions = () => {
-    return (
-      <Space>
-        <Button icon={<PlusOutlined />} onClick={openAdd}>
-          新增
-        </Button>
-      </Space>
-    );
-  };
   return (
     <div className="w-full! h-full!">
       <GenericFilterableList<RoleInfo, RoleFilterListParams>
@@ -33,7 +22,7 @@ export function RoleList() {
         fetcher={fetchList}
         showIndexColumn={true}
         onRefetch={handleSetRefetch}
-        renderSearchActions={renderSearchActions}
+        renderSearchActions={addAction}
       />
       <RoleEditDialog {...dialogProps} />
       <RoleAuthMenu {...authMenuDialogProps} />

@@ -5,70 +5,79 @@ import { FormLayout } from "antd/es/form/Form"; // Antd 布局类型
 type DynamicProp<TData, TProp> = TProp | ((data: TData) => TProp);
 
 export type FieldType =
-    | "input" | "password" | "number" | "textarea"
-    | "select" | "treeSelect" | "checkbox" | "switch"
-    | "date" | "range" | "radio" | "custom";
+  | "input"
+  | "password"
+  | "number"
+  | "textarea"
+  | "select"
+  | "treeSelect"
+  | "checkbox"
+  | "switch"
+  | "date"
+  | "range"
+  | "radio"
+  | "custom";
 
 export interface Option {
-    label: string;
-    value: string | number | boolean;
-    children?: Option[];
+  label: string;
+  value: string | number | boolean;
+  children?: Option[];
 }
 
 export interface FormFieldConfig<T extends FieldValues> {
-    name: Path<T>;
-    type: FieldType;
-    label?: DynamicProp<T, string>;
+  name: Path<T>;
+  type: FieldType;
+  label?: DynamicProp<T, string>;
 
-    // --- 布局配置 ---
-    // Antd 使用 24 栅格系统。如果不填，默认根据全局列数计算。
-    span?: DynamicProp<T, number>;
+  // --- 布局配置 ---
+  // Antd 使用 24 栅格系统。如果不填，默认根据全局列数计算。
+  span?: DynamicProp<T, number>;
 
-    // --- 交互与逻辑 ---
-    ifShow?: DynamicProp<T, boolean>;
-    disabled?: DynamicProp<T, boolean>;
-    required?: DynamicProp<T, boolean>; // 控制 UI 上的红星显示
+  // --- 交互与逻辑 ---
+  ifShow?: DynamicProp<T, boolean>;
+  disabled?: DynamicProp<T, boolean>;
+  required?: DynamicProp<T, boolean>; // 控制 UI 上的红星显示
 
-    // --- 组件配置 ---
-    component?: ComponentType<any>; // 自定义组件
-    componentProps?: DynamicProp<T, Record<string, any>>;
-    options?: Option[];
+  // --- 组件配置 ---
+  component?: ComponentType<any>; // 自定义组件
+  componentProps?: DynamicProp<T, Record<string, any>>;
+  options?: Option[];
 
-    // --- 插槽 ---
-    renderBefore?: DynamicProp<T, ReactNode>;
-    renderAfter?: DynamicProp<T, ReactNode>;
+  // --- 插槽 ---
+  renderBefore?: DynamicProp<T, ReactNode>;
+  renderAfter?: DynamicProp<T, ReactNode>;
 
-    // --- 其它 ---
-    emitChange?: boolean;
-    tooltip?: string;
-    helperText?: string; // 额外的提示文案
-    placeholder?: string;
+  // --- 其它 ---
+  emitChange?: boolean;
+  tooltip?: string;
+  helperText?: string; // 额外的提示文案
+  placeholder?: string;
 }
 
 export interface SchemaFormProps<T extends FieldValues> {
-    schema: any; // Zod schema
-    fields: FormFieldConfig<T>[];
-    defaultValues?: Partial<T>;
-    onSubmit: (data: T) => void;
-    // 字段变化
-    onFieldChange?: (name: Path<T>, value: any, allValues: T) => void;
-    // 加载状态
-    loading?: boolean;
-    // 只读状态
-    readonly?: boolean;
-    children?: ReactNode;
-    className?: string;
+  schema: any; // Zod schema
+  fields: FormFieldConfig<T>[];
+  defaultValues?: Partial<T>;
+  onSubmit: (data: T) => void;
+  // 字段变化
+  onFieldChange?: (name: Path<T>, value: any, allValues: T) => void;
+  // 加载状态
+  loading?: boolean;
+  // 只读状态
+  readonly?: boolean;
+  children?: ReactNode;
+  className?: string;
 
-    // --- Antd 表单特定配置 ---
-    layout?: FormLayout; // 'horizontal' | 'vertical' | 'inline'
-    labelCol?: { span: number; offset?: number }; // Label 宽度配置
-    wrapperCol?: { span: number; offset?: number }; // 控件宽度配置
-    gridCols?: number; // 默认每行几列 (用于计算默认 span)
-    gutter?: number | [number, number]; // 栅格间距
+  // --- Antd 表单特定配置 ---
+  layout?: FormLayout; // 'horizontal' | 'vertical' | 'inline'
+  labelCol?: { span: number; offset?: number }; // Label 宽度配置
+  wrapperCol?: { span: number; offset?: number }; // 控件宽度配置
+  gridCols?: number; // 默认每行几列 (用于计算默认 span)
+  gutter?: number | [number, number]; // 栅格间距
 }
 export interface SchemaFormRef<T = any> {
-    // 提交数据
-    submit: () => void;
-    // 重置表单/回显数据
-    reset: (data?: T | Partial<T>) => void;
+  // 提交数据
+  submit: () => void;
+  // 重置表单/回显数据
+  reset: (data?: T | Partial<T>) => void;
 }
