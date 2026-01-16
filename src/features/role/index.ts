@@ -1,2 +1,2 @@
-export * from "./components/RoleList/RoleList";
+export * from "./components/RoleList";
 export * from "./types";

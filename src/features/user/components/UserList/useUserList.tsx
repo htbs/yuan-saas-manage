@@ -1,6 +1,5 @@
 import { ColumnType } from "antd/es/table";
-import { useState, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { SysUserFilterListParams, SysUserDataList } from "./UserList.types";
 import {
   findPageListApi,
@@ -9,55 +8,100 @@ import {
   resetPasswordApi,
 } from "@/src/services";
 import {
-  createSwitchStatusColumn,
   createActionColumn,
   FixedActionItem,
   createLinkColumn,
 } from "@/src/lib/utils/tableColumns";
 import { ActionItem } from "@/src/components/ui/dropdown/MoreActionsDropdown";
-import { useUserStore } from "../../stores/useUserStore";
-import { message, Popconfirm } from "antd";
+import { message, Popconfirm, Space, Button } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
+  /**
+   * 存储刷新数据的回调函数
+   */
+  const refetchRef = useRef<() => void>(() => () => {});
+  /**
+   * 注册列表刷新函数
+   */
+  const registerRefetch = useCallback((fn: () => void) => {
+    refetchRef.current = fn;
+  }, []);
+
+  /** 触发列表刷新 */
+  const triggerRefetch = useCallback(() => {
+    refetchRef.current?.();
+  }, []);
+
+  /**
+   * 设置编辑、详情、新增 Dialog 逻辑
+   */
+  const [baseDialogState, setBaseDialogState] = useState<{
+    isOpen: boolean;
+    mode: "add" | "edit" | "detail";
+    userId?: string; // 数据ID
+  }>({ isOpen: false, mode: "add", userId: "" });
+
+  /**
+   * 打开编辑、详情、新增 Dialog
+   */
+  const openBaseDialog = useCallback(
+    (mode: "add" | "edit" | "detail", userId?: string) => {
+      setBaseDialogState({ isOpen: true, mode, userId });
+    },
+    []
+  );
+
+  /**
+   * 关闭 编辑、详情、新增 Dialog
+   */
+  const closeBaseDialog = useCallback(() => {
+    setBaseDialogState((prev) => ({ ...prev, isOpen: false }));
+  }, []);
+
+  /**
+   * 启用 / 禁用 API
+   */
+  const apiUpdateStatus = useCallback(async (record: SysUserDataList) => {
+    const newStatus = record.status === "active" ? "suspended" : "active";
+    await (newStatus === "active"
+      ? unLockUserApi(record.id)
+      : lockUserApi(record.id));
+  }, []);
+
+  /**
+   * 操作列：新增按钮
+   */
+  const addAction = useCallback(() => {
+    return (
+      <Space>
+        <Button icon={<PlusOutlined />} onClick={() => openBaseDialog("add")}>
+          新增
+        </Button>
+      </Space>
+    );
+  }, [openBaseDialog]);
+
+  /**
+   * 分页查询用户列表
+   */
   const fetchUserList = useCallback(async (params: SysUserFilterListParams) => {
-    // 实际调用您封装的 request 模块
     const result = await findPageListApi(params);
     return { list: result.content, total: result.totalElements };
   }, []);
-  const router = useRouter();
-
-  const setView = useUserStore((state) => state.setView);
-
-  // 使用 useRef 存储 refetch 函数
-  const [refetcher, setRefetcher] = useState<() => void>(() => () => {});
-  // 设置回调函数，将 refetch 存入 ref
-  const handleSetRefetch = useCallback((fn: () => void) => {
-    setRefetcher(() => fn); // 注意：设置函数需要用函数式更新
-  }, []);
-
-  // 处理状态的启用禁用
-  const apiUpdateStatus = useCallback(async (record: SysUserDataList) => {
-    const newStatus = record.status === "active" ? "suspended" : "active";
-    try {
-      // 启用 / 禁用
-      if (newStatus === "active") {
-        await unLockUserApi(record.id);
-      } else {
-        await lockUserApi(record.id);
-      }
-    } catch {}
-  }, []);
 
   const finalUserColumns = useMemo(() => {
-    // 创建操作列
-    const fixedActionItems: FixedActionItem<SysUserDataList>[] = [
+    // 固定操作： 编辑
+    const fixedActionEdit: FixedActionItem<SysUserDataList>[] = [
       {
         label: "编辑",
-        onClick: (record) => {
-          setView("edit", record.id);
-        },
         type: "primary",
+        onClick: (record) => {
+          openBaseDialog("edit", record.id);
+        },
       },
     ];
+
+    // 更多操作： 重置密码
     const actionItems: ActionItem<SysUserDataList>[] = [
       {
         key: "resetPassword",
@@ -69,39 +113,48 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
               message.success("重置密码成功");
             }}
           >
+            {/* 阻止事件冒泡 */}
             <a onClick={(e) => e.stopPropagation()}>重置密码</a>
           </Popconfirm>
         ),
         onClick: () => {},
       },
     ];
-    // 使用 .map 遍历原始列配置，实现“原位增强”
+    /**
+     * 最终列定义 原位增强
+     */
     return baseColumns.map((col) => {
-      // 用户账号列 (Link)
+      /**
+       * 用户账号列 (跳转详情页)
+       */
       if (col.key === "userName") {
         return createLinkColumn<SysUserDataList>(
           "userName",
           (col.title as string) || "用户账号",
-          (record) => setView("detail", record.id),
+          (record) => openBaseDialog("detail", record.id),
           { ...col } // 继承原有的 width, fixed 等配置
         );
       }
 
-      // 状态列 (Switch)
-      if (col.key === "status") {
-        return createSwitchStatusColumn<SysUserDataList, string>(
-          apiUpdateStatus,
-          refetcher,
-          "status",
-          (col.title as string) || "状态",
-          { checked: "active", unChecked: "suspended" }
-        );
-      }
+      /**
+       * 状态列
+       */
+      // if (col.key === "status") {
+      //   return createSwitchStatusColumn<SysUserDataList, string>(
+      //     apiUpdateStatus,
+      //     onStatusChangeFinished,
+      //     "status",
+      //     (col.title as string) || "状态",
+      //     { checked: "active", unChecked: "suspended" }
+      //   );
+      // }
 
-      // 操作列
+      /**
+       * 操作列
+       */
       if (col.key === "action") {
         return {
-          ...createActionColumn(fixedActionItems, actionItems),
+          ...createActionColumn(fixedActionEdit, actionItems),
           ...col, // 合并原始配置中的 width, fixed 等
         };
       }
@@ -109,11 +162,33 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
       // 其他列：保持原样
       return col;
     });
-  }, [baseColumns, apiUpdateStatus, refetcher, setView]);
+  }, [baseColumns, openBaseDialog]);
 
   return {
+    /**
+     * 最终列定义
+     */
     finalUserColumns,
+    /**
+     * 列表数据查询
+     */
     fetchUserList,
-    handleSetRefetch,
+    /**
+     * 列表刷新注册
+     */
+    registerRefetch,
+
+    /**
+     * 新增按钮
+     */
+    addAction,
+    /**
+     * 角色编辑、详情、新增 Dialog
+     */
+    dialogProps: {
+      ...baseDialogState,
+      onClose: closeBaseDialog,
+      onSuccess: triggerRefetch, // 刷新列表方法
+    },
   };
 };

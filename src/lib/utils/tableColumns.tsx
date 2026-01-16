@@ -66,12 +66,12 @@ const StatusSwitch = <T extends object>({
   record,
   statusValue,
   updateStatusApi,
-  refetch,
+  onAfterChange,
 }: {
   record: T;
   statusValue: string;
   updateStatusApi: (record: T, newStatus: string) => Promise<unknown>;
-  refetch: () => void;
+  onAfterChange: () => void;
 }) => {
   const [loading, setLoading] = useState(false);
   const checked = statusValue === "Y";
@@ -85,7 +85,7 @@ const StatusSwitch = <T extends object>({
 
     try {
       await updateStatusApi(record, newStatus);
-      refetch();
+      onAfterChange?.();
       // message.success({ content: "操作成功", key });
     } catch (error) {
       // message.error({ content: "操作失败", key });
@@ -113,7 +113,7 @@ export const createSwitchStatusColumn = <
   V = string | number | boolean
 >(
   updateStatusApi: (record: T, newStatus: V) => Promise<unknown>,
-  refetch: () => void,
+  onAfterChange: () => void,
   dataIndex: keyof T & (string | number), // 限制类型为 string | number
   title: string = "状态",
   options: { checked: V; unChecked: V } = {
@@ -134,9 +134,9 @@ export const createSwitchStatusColumn = <
         updateStatusApi={async (rec, newStrStatus) => {
           const originalValue: V =
             newStrStatus === "Y" ? options.checked : options.unChecked;
-          return updateStatusApi(rec, originalValue);
+          updateStatusApi(rec, originalValue);
         }}
-        refetch={refetch}
+        onAfterChange={onAfterChange}
       />
     ),
   };

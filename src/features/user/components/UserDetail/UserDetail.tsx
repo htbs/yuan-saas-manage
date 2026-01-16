@@ -13,7 +13,7 @@ import {
 import SmsCaptchaInput from "@/src/components/ui/CaptchaInput/SmsCaptchaInput";
 import { useUserStore } from "../../stores/useUserStore";
 import { UpdateOrAddUserParams } from "./UserDetail.types";
-import RoleSelect from "@src/features/role/components/RoleSelect/RoleSelect";
+import RoleSelect from "@/src/features/role/components/RoleSelect";
 import {
   updateUserApi,
   saveUserApi,
