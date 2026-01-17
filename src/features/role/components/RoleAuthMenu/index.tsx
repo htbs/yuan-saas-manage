@@ -11,7 +11,7 @@ import { RoleAuthMenuParams } from "@/src/features/role/types";
 import { roleAuthMenuApi } from "@/src/services/role.service";
 import { readLocalUserInfo } from "@/src/lib/utils/authUtil";
 import { MenuInfo } from "@src/features/menu/types";
-import { YsDraggableDialog } from "@/src/components/YsDraggableDialog/YsDraggableDialog1";
+import { YsDraggableDialog } from "@/src/components/YsDraggableDialog/YsDraggableDialog";
 
 export const RoleAuthMenu = (props: {
   isOpen: boolean;

@@ -8,7 +8,7 @@ import {
 } from "@/src/services/role.service";
 import { useRef, useEffect } from "react";
 
-import { YsDraggableDialog } from "@/src/components/YsDraggableDialog/YsDraggableDialog1";
+import { YsDraggableDialog } from "@/src/components/YsDraggableDialog/YsDraggableDialog";
 import SchemaForm from "@src/components/YsForm/index";
 import { FormFieldConfig, SchemaFormRef } from "@src/components/YsForm/types";
 import { z } from "zod";
