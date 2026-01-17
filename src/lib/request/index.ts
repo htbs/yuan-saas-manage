@@ -21,6 +21,7 @@ interface RefareshTokenResult {
   refreshToken: string;
 }
 
+console.log('process.env.NEXT_PUBLIC_API_URL',process.env.NEXT_PUBLIC_API_URL);
 // 公共配置
 const DEFAULT_CONFIG = {
   baseURL: process.env.NEXT_PUBLIC_API_URL,
