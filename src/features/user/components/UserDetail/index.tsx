@@ -2,7 +2,6 @@ import { Button } from "antd";
 
 import SmsCaptchaInput from "@/src/components/ui/CaptchaInput/SmsCaptchaInput";
 import { UpdateOrAddUserParams } from "./UserDetail.types";
-import RoleSelect from "@/src/features/role/components/RoleSelect";
 import {
   getUserInfoApi,
   saveUserApi,

@@ -26,10 +26,6 @@ export function UserList() {
         showIndexColumn={true}
         onRefetch={registerRefetch}
         renderSearchActions={addAction}
-        // controlledPagination={pagination} // 分页同步
-        // onPaginationChange={setPagination} // 分页操作回调
-        // onSearchUpdate={setQueryParams} // 搜索操作回调
-        // onReset={resetAll} // 重置操作回调
       />
       <UserEditDialog {...dialogProps} />
     </div>
