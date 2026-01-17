@@ -105,7 +105,7 @@ export const getShopTypeName = (value: ShopTypeEnum): string => {
 // C. 根据 name 获取枚举值 (反向查找)
 export const getEnumByName = (name: string): ShopTypeEnum | undefined => {
   const entry = Object.entries(ShopTypeConfig).find(
-    ([_, info]) => info.name === name
+    ([_, info]) => info.name === name,
   );
   return entry ? (entry[0] as ShopTypeEnum) : undefined;
 };

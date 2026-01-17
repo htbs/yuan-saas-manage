@@ -1,5 +1,5 @@
 import { ColumnType } from "antd/es/table";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { ShopFilterListParams, ShopListInfo } from "../../types";
 import {
   findShopPageApi,
@@ -8,53 +8,129 @@ import {
   deleteShopApi,
 } from "@/src/services";
 import {
-  createSwitchStatusColumn,
   createActionColumn,
   FixedActionItem,
   createLinkColumn,
 } from "@/src/lib/utils/tableColumns";
 import { ActionItem } from "@/src/components/ui/dropdown/MoreActionsDropdown";
-import { useShopStore } from "../../stores/useShopStore";
-import { message, Popconfirm } from "antd";
+import { Space, Popconfirm, Button } from "antd";
+import { CurdActionEnum } from "@/src/types";
+import { PlusOutlined } from "@ant-design/icons";
 
 export const useShopList = (baseColumns: ColumnType<ShopListInfo>[]) => {
+  /**
+   * 存储刷新数据的回调函数
+   */
+  const refetchRef = useRef<() => void>(() => () => {});
+  /**
+   * 注册列表刷新函数
+   */
+  const registerRefetch = useCallback((fn: () => void) => {
+    refetchRef.current = fn;
+  }, []);
+
+  /** 触发列表刷新 */
+  const triggerRefetch = useCallback(() => {
+    refetchRef.current?.();
+  }, []);
+
+  /**
+   * 设置编辑、详情、新增 Dialog 逻辑
+   */
+  const [baseDialogState, setBaseDialogState] = useState<{
+    isOpen: boolean;
+    mode: CurdActionEnum;
+    shopId?: string; // 数据ID
+  }>({ isOpen: false, mode: CurdActionEnum.add, shopId: "" });
+
+  /**
+   * 打开编辑、详情、新增 Dialog
+   */
+  const openBaseDialog = useCallback(
+    (mode: CurdActionEnum, shopId?: string) => {
+      setBaseDialogState({ isOpen: true, mode, shopId });
+    },
+    [],
+  );
+
+  /**
+   * 关闭 编辑、详情、新增 Dialog
+   */
+  const closeBaseDialog = useCallback(() => {
+    setBaseDialogState((prev) => ({ ...prev, isOpen: false }));
+  }, []);
+
+  /**
+   * 设置编辑、详情、新增 Dialog 逻辑
+   */
+  const [workBenchDialogState, setWorkBenchDialogState] = useState<{
+    isOpen: boolean;
+    shopId: string; // 数据ID
+  }>({ isOpen: false, shopId: "" });
+
+  /**
+   * 打开编辑、详情、新增 Dialog
+   */
+  const openWorkBenchDialog = useCallback((shopId: string) => {
+    setWorkBenchDialogState({ isOpen: true, shopId });
+  }, []);
+
+  /**
+   * 关闭 编辑、详情、新增 Dialog
+   */
+  const closeWorkBenchDialog = useCallback(() => {
+    setWorkBenchDialogState((prev) => ({ ...prev, isOpen: false }));
+  }, []);
+
+  /**
+   * 状态更新
+   */
+  // const apiUpdateStatus = useCallback(async (record: ShopListInfo) => {
+  //   const newStatus = record.lockStatus === "N" ? "Y" : "N";
+  //   try {
+  //     // 启用 / 禁用
+  //     if (newStatus === "Y") {
+  //       await unLockShopApi(record.id);
+  //     } else {
+  //       await lockShopApi(record.id);
+  //     }
+  //   } catch {}
+  // }, []);
+
+  /**
+   * 获取列表数据
+   */
   const fetchList = useCallback(async (params: ShopFilterListParams) => {
     // 实际调用您封装的 request 模块
     const result = await findShopPageApi(params);
     return { list: result.content, total: result.totalElements };
   }, []);
 
-  const setView = useShopStore((state) => state.setView);
-
-  // 使用 useRef 存储 refetch 函数
-  const [refetcher, setRefetcher] = useState<() => void>(() => () => {});
-  // 设置回调函数，将 refetch 存入 ref
-  const handleSetRefetch = useCallback((fn: () => void) => {
-    setRefetcher(() => fn); // 注意：设置函数需要用函数式更新
-  }, []);
-
-  // 处理状态的启用禁用
-  const apiUpdateStatus = useCallback(async (record: ShopListInfo) => {
-    const newStatus = record.lockStatus === "N" ? "Y" : "N";
-    try {
-      // 启用 / 禁用
-      if (newStatus === "Y") {
-        await unLockShopApi(record.id);
-      } else {
-        await lockShopApi(record.id);
-      }
-    } catch {}
-  }, []);
+  /**
+   * 操作列：新增按钮
+   */
+  const addAction = useCallback(() => {
+    return (
+      <Space>
+        <Button
+          icon={<PlusOutlined />}
+          onClick={() => openBaseDialog(CurdActionEnum.add)}
+        >
+          新增
+        </Button>
+      </Space>
+    );
+  }, [openBaseDialog]);
 
   const finalAllColumns = useMemo(() => {
     // 创建操作列
     const editItems: FixedActionItem<ShopListInfo>[] = [
       {
         label: "编辑",
-        onClick: (record) => {
-          setView("edit", record.id);
-        },
         type: "primary",
+        onClick: (record) => {
+          openBaseDialog(CurdActionEnum.edit, record.id);
+        },
       },
     ];
     // 工作台
@@ -62,7 +138,7 @@ export const useShopList = (baseColumns: ColumnType<ShopListInfo>[]) => {
       {
         label: "工作台",
         onClick: (record) => {
-          setView("workbench", record.id);
+          openWorkBenchDialog(record.id);
         },
         type: "primary",
       },
@@ -77,7 +153,7 @@ export const useShopList = (baseColumns: ColumnType<ShopListInfo>[]) => {
             onConfirm={async () => {
               // 删除商家
               await deleteShopApi(record.id);
-              message.success(`删除成功`);
+              triggerRefetch();
             }}
           >
             <a onClick={(e) => e.stopPropagation()}>删除</a>
@@ -93,28 +169,28 @@ export const useShopList = (baseColumns: ColumnType<ShopListInfo>[]) => {
         return createLinkColumn<ShopListInfo>(
           "name",
           (col.title as string) || "商家名称",
-          (record) => setView("detail", record.id),
-          { ...col } // 继承原有的 width, fixed 等配置
+          (record) => openBaseDialog(CurdActionEnum.view, record.id),
+          { ...col }, // 继承原有的 width, fixed 等配置
         );
       }
 
       // 状态列 (Switch)
-      if (col.key === "lockStatus") {
-        return createSwitchStatusColumn<ShopListInfo, string>(
-          apiUpdateStatus,
-          refetcher,
-          "lockStatus",
-          (col.title as string) || "锁定状态",
-          { checked: "N", unChecked: "Y" }
-        );
-      }
+      // if (col.key === "lockStatus") {
+      //   return createSwitchStatusColumn<ShopListInfo, string>(
+      //     apiUpdateStatus,
+      //     refetcher,
+      //     "lockStatus",
+      //     (col.title as string) || "锁定状态",
+      //     { checked: "N", unChecked: "Y" },
+      //   );
+      // }
 
       // 操作列
       if (col.key === "action") {
         return {
           ...createActionColumn(
             [...editItems, ...workbenchItems],
-            [...deleteItems]
+            [...deleteItems],
           ),
           ...col, // 合并原始配置中的 width, fixed 等
         };
@@ -123,11 +199,42 @@ export const useShopList = (baseColumns: ColumnType<ShopListInfo>[]) => {
       // 其他列：保持原样
       return col;
     });
-  }, [baseColumns, apiUpdateStatus, refetcher, setView]);
+  }, [baseColumns, openBaseDialog, triggerRefetch, openWorkBenchDialog]);
 
   return {
+    /**
+     * 最终列定义
+     */
     finalAllColumns,
+    /**
+     * 列表数据查询
+     */
     fetchList,
-    handleSetRefetch,
+    /**
+     * 列表刷新注册
+     */
+    registerRefetch,
+
+    /**
+     * 新增按钮
+     */
+    addAction,
+    /**
+     * 角色编辑、详情、新增 Dialog
+     */
+    dialogProps: {
+      ...baseDialogState,
+      onClose: closeBaseDialog,
+      onSuccess: triggerRefetch, // 刷新列表方法
+    },
+
+    /**
+     * 工作台 Dialog
+     */
+    workBenchDialogProps: {
+      ...workBenchDialogState,
+      onClose: closeWorkBenchDialog,
+      onSuccess: triggerRefetch, // 刷新列表方法
+    },
   };
 };
