@@ -8,7 +8,7 @@ import {
 } from "@/src/services/role.service";
 import { useRef, useEffect } from "react";
 
-import { YsDraggableDialog } from "@src/components/YsDraggableDialog/YsDraggableDialog";
+import { YsDraggableDialog } from "@/src/components/YsDraggableDialog/YsDraggableDialog1";
 import SchemaForm from "@src/components/YsForm/index";
 import { FormFieldConfig, SchemaFormRef } from "@src/components/YsForm/types";
 import { z } from "zod";
@@ -92,8 +92,8 @@ export function RoleEditDialog(props: RoleDetailProps) {
           props.mode === "add"
             ? "新增角色"
             : props.mode === "edit"
-            ? "编辑角色"
-            : "详情"
+              ? "编辑角色"
+              : "详情"
         }
         onClose={props.onClose}
         initialWidth={600}

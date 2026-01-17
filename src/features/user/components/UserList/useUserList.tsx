@@ -15,6 +15,7 @@ import {
 import { ActionItem } from "@/src/components/ui/dropdown/MoreActionsDropdown";
 import { message, Popconfirm, Space, Button } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
+import { CurdActionEnum } from "@/src/types";
 export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
   /**
    * 存储刷新数据的回调函数
@@ -37,18 +38,18 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
    */
   const [baseDialogState, setBaseDialogState] = useState<{
     isOpen: boolean;
-    mode: "add" | "edit" | "detail";
+    mode: CurdActionEnum;
     userId?: string; // 数据ID
-  }>({ isOpen: false, mode: "add", userId: "" });
+  }>({ isOpen: false, mode: CurdActionEnum.add, userId: "" });
 
   /**
    * 打开编辑、详情、新增 Dialog
    */
   const openBaseDialog = useCallback(
-    (mode: "add" | "edit" | "detail", userId?: string) => {
+    (mode: CurdActionEnum, userId?: string) => {
       setBaseDialogState({ isOpen: true, mode, userId });
     },
-    []
+    [],
   );
 
   /**
@@ -74,7 +75,10 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
   const addAction = useCallback(() => {
     return (
       <Space>
-        <Button icon={<PlusOutlined />} onClick={() => openBaseDialog("add")}>
+        <Button
+          icon={<PlusOutlined />}
+          onClick={() => openBaseDialog(CurdActionEnum.add)}
+        >
           新增
         </Button>
       </Space>
@@ -96,7 +100,7 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
         label: "编辑",
         type: "primary",
         onClick: (record) => {
-          openBaseDialog("edit", record.id);
+          openBaseDialog(CurdActionEnum.edit, record.id);
         },
       },
     ];
@@ -131,8 +135,8 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
         return createLinkColumn<SysUserDataList>(
           "userName",
           (col.title as string) || "用户账号",
-          (record) => openBaseDialog("detail", record.id),
-          { ...col } // 继承原有的 width, fixed 等配置
+          (record) => openBaseDialog(CurdActionEnum.view, record.id),
+          { ...col }, // 继承原有的 width, fixed 等配置
         );
       }
 

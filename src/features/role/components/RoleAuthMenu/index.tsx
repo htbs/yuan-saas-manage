@@ -11,7 +11,7 @@ import { RoleAuthMenuParams } from "@/src/features/role/types";
 import { roleAuthMenuApi } from "@/src/services/role.service";
 import { readLocalUserInfo } from "@/src/lib/utils/authUtil";
 import { MenuInfo } from "@src/features/menu/types";
-import { YsDraggableDialog } from "@/src/components/YsDraggableDialog/YsDraggableDialog";
+import { YsDraggableDialog } from "@/src/components/YsDraggableDialog/YsDraggableDialog1";
 
 export const RoleAuthMenu = (props: {
   isOpen: boolean;
@@ -40,7 +40,7 @@ export const RoleAuthMenu = (props: {
   /** 把 MenuInfo 树转成 AntD Tree 需要的 TreeDataNode */
   const convertTree = (
     list: MenuInfo[],
-    roleIdSet: Set<string>
+    roleIdSet: Set<string>,
   ): { tree: TreeDataNode[]; checked: string[] } => {
     const checked: string[] = [];
 
@@ -126,7 +126,7 @@ export const RoleAuthMenu = (props: {
     try {
       // 合并全选和半选，确保后端能拿到完整的树路径
       const finalKeys = Array.from(
-        new Set([...checkedKeys, ...halfCheckedKeys])
+        new Set([...checkedKeys, ...halfCheckedKeys]),
       ).map(String);
       const params: RoleAuthMenuParams = {
         roleId: props.roleId,

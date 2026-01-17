@@ -7,7 +7,7 @@ import FieldRenderer from "./FieldRenderer";
 
 const SchemaFormInner = <T extends FieldValues>(
   props: SchemaFormProps<T>,
-  ref: React.Ref<SchemaFormRef>
+  ref: React.Ref<SchemaFormRef>,
 ) => {
   const {
     schema,
@@ -72,7 +72,7 @@ const SchemaFormInner = <T extends FieldValues>(
 // 3. 使用 forwardRef 并强制转换类型
 // (这是解决 TypeScript 泛型丢失问题的标准 Hack 写法)
 const SchemaForm = forwardRef(SchemaFormInner) as <T extends FieldValues>(
-  props: SchemaFormProps<T> & { ref?: React.Ref<SchemaFormRef> }
+  props: SchemaFormProps<T> & { ref?: React.Ref<SchemaFormRef> },
 ) => React.ReactElement;
 
 export default SchemaForm;

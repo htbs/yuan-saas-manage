@@ -177,8 +177,6 @@ export const YsDraggableDialog: React.FC<DraggableDialogProps> = ({
   const handleMouseDown = (e: React.MouseEvent) => {
     // 只有在 Normal 或 Minimized 模式下允许拖拽，全屏不可拖拽
     if (mode === "MAXIMIZED") return;
-    // 开始拖拽
-    document.body.classList.add("ys-dialog-dragging");
 
     e.preventDefault(); // 防止选中文本
 
@@ -200,8 +198,6 @@ export const YsDraggableDialog: React.FC<DraggableDialogProps> = ({
     };
 
     const handleMouseUp = (upEvent: MouseEvent) => {
-      // 结束拖拽
-      document.body.classList.remove("ys-dialog-dragging");
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
 
@@ -286,7 +282,6 @@ export const YsDraggableDialog: React.FC<DraggableDialogProps> = ({
 
   // 3. 最大化 / 还原
   const toggleMaximize = () => {
-    if (mode === "MINIMIZED") return;
     if (mode === "MAXIMIZED") {
       // 还原
       setMode("NORMAL");
@@ -345,23 +340,6 @@ export const YsDraggableDialog: React.FC<DraggableDialogProps> = ({
 
   if (!visible) return null;
 
-  /**
-   * 处理 Header 双击事件：最大化/还原 或 最小化/还原
-   */
-  const handleHeaderDoubleClick = () => {
-    if (mode === "MINIMIZED") {
-      // 双击最小化 → 还原到之前状态
-      if (prevBoundsRef.current) {
-        setBounds(prevBoundsRef.current);
-      }
-      setMode(preMinimizeModeRef.current);
-      return;
-    }
-
-    // NORMAL <-> MAXIMIZED
-    toggleMaximize();
-  };
-
   // --- 渲染逻辑 ---
 
   // 如果是 Offscreen 模式，渲染救援按钮
@@ -399,29 +377,54 @@ export const YsDraggableDialog: React.FC<DraggableDialogProps> = ({
 
   const dialogStyle: CSSProperties = {
     position: "fixed",
-    zIndex,
+    zIndex: zIndex,
+    // 如果最大化，强制 0,0,100%,100%
     left: isMaximized ? 0 : bounds.x,
     top: isMaximized ? 0 : bounds.y,
     width: isMaximized ? "100vw" : bounds.width,
     height: isMaximized ? "100vh" : bounds.height,
+    display: "flex",
+    flexDirection: "column",
+    backgroundColor: "#fff",
+    boxShadow: "0 0 15px rgba(0,0,0,0.2)",
+    borderRadius: isMaximized ? 0 : "4px",
+    overflow: "hidden", // 隐藏溢出，尤其在 resize 时
+    transition: "width 0.2s ease, height 0.2s ease, top 0.1s, left 0.1s",
   };
 
   return ReactDOM.createPortal(
     <>
-      {/* 👇 新增遮罩层 */}
-      <div className="dialog-visual-mask" />
       <div className="draggable-dialog-wrapper" style={dialogStyle}>
         {/* --- Header --- */}
         <div
           className="dialog-header"
           onMouseDown={handleMouseDown}
-          onDoubleClick={handleHeaderDoubleClick} // 双击 Header 也可最大化/还原，符合习惯
+          onDoubleClick={toggleMaximize} // 双击 Header 也可最大化/还原，符合习惯
+          style={{
+            height: "40px",
+            backgroundColor: "#f5f5f5",
+            borderBottom: "1px solid #ddd",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 10px",
+            cursor: isMaximized ? "default" : "move", // 十字图标逻辑在 CSS 类中增强
+            userSelect: "none",
+            flexShrink: 0,
+            whiteSpace: "nowrap",
+          }}
         >
           {/* 左侧：Icon + Title */}
-          <div className="dialog-title">
-            <span className="dialog-drag-indicator" />
-            {icon}
-            <span className="dialog-title-text">{title}</span>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              pointerEvents: "none",
+            }}
+          >
+            {icon || <span>⚙️</span>}
+            <span style={{ fontWeight: 600, fontSize: "14px" }}>{title}</span>
           </div>
 
           {/* 右侧：Controls */}
@@ -466,52 +469,31 @@ export const YsDraggableDialog: React.FC<DraggableDialogProps> = ({
         {/* --- Body --- */}
         {/* 最小化时隐藏 Body 和 Footer */}
         <div
-          className="dialog-content-wrapper"
+          className="dialog-body"
           style={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            backgroundColor: "#fff",
-            opacity: isMinimized ? 0 : 1,
-            transform: isMinimized
-              ? "translateY(-6px) scale(0.98)"
-              : "translateY(0) scale(1)",
-
-            pointerEvents: isMinimized ? "none" : "auto",
-
-            transition:
-              "opacity 320ms cubic-bezier(.4,0,.2,1), transform 320ms cubic-bezier(.4,0,.2,1)",
-            transformOrigin: "top",
+            padding: "16px",
+            overflow: "auto",
+            display: isMinimized ? "none" : "block",
           }}
         >
+          {children}
+        </div>
+
+        {/* --- Footer Slot --- */}
+        {footer && (
           <div
-            className="dialog-body"
+            className="dialog-footer"
             style={{
-              flex: 1,
-              padding: "16px",
-              overflow: "auto",
+              padding: "10px 16px",
+              borderTop: "1px solid #eee",
+              backgroundColor: "#fff",
               display: isMinimized ? "none" : "block",
             }}
           >
-            {children}
+            {footer}
           </div>
-
-          {/* --- Footer Slot --- */}
-          {footer && (
-            <div
-              className="dialog-footer"
-              style={{
-                padding: "10px 16px",
-                borderTop: "1px solid #eee",
-                backgroundColor: "#fff",
-                display: isMinimized ? "none" : "block",
-              }}
-            >
-              {footer}
-            </div>
-          )}
-        </div>
+        )}
 
         {/* --- Resize Handles (8个方向) --- */}
         {!isMaximized && !isMinimized && (
@@ -554,68 +536,28 @@ export const YsDraggableDialog: React.FC<DraggableDialogProps> = ({
 
       {/* 注入 CSS 样式 */}
       <style>{`
-        .dialog-visual-mask {
-          position: fixed;
-          inset: 0;
-
-          /* 👇 核心：弱遮罩 */
-          // background: rgba(0, 0, 0, 0.3);
-          background: rgba(0, 0, 0, 0.15);
-          // backdrop-filter: blur(2px) saturate(0.9);
-
-          /* 不拦截任何操作 */
-          pointer-events: none;
-
-          z-index: 999; /* 比页面高，比弹窗低 */
-        }
-        .dialog-footer {
-          padding: 10px 16px;
-          // background-color: #fafafa;
-          border-top: 1px solid #f0f0f0;
-
-        }
-       .icon-btn {
+        .icon-btn {
           border: none;
           background: transparent;
           cursor: pointer;
-
-          width: 32px;
-          height: 32px;
-          border-radius: 6px;
-
-          display: inline-flex;
+          padding: 4px;
+          border-radius: 4px;
+          display: flex;
           align-items: center;
           justify-content: center;
-
-          color: rgba(0, 0, 0, 0.65);
-
-          transition:
-            background-color 0.15s ease,
-            color 0.15s ease,
-            transform 0.1s ease;
+          color: #555;
         }
-
-        .icon-btn:hover {
-          background-color: rgba(0, 0, 0, 0.04);
+        .icon-btn:hover { background-color: #e0e0e0; }
+        .close-btn:hover { background-color: #ff4d4f; color: white; }
+        
+        /* 十字光标逻辑 */
+        .dialog-header:hover {
+            /* 这里使用 move 标准光标，如果必须是十字，可以用 cursor: crosshair */
+            cursor: move; 
         }
-
-        .icon-btn:active {
-          transform: scale(0.94);
-        }
-
-        .close-btn:hover {
-          background-color: #ff4d4f;
-          color: #fff;
-        }
-
 
         /* Resize Handles Positioning */
-        .resize-handle {
-          position: absolute;
-          z-index: 10;
-          opacity: 0;
-          transition: opacity 0.2s ease;
-        }
+        .resize-handle { position: absolute; z-index: 10; }
         .resize-handle.n { top: 0; left: 0; right: 0; height: 5px; cursor: n-resize; }
         .resize-handle.s { bottom: 0; left: 0; right: 0; height: 5px; cursor: s-resize; }
         .resize-handle.w { left: 0; top: 0; bottom: 0; width: 5px; cursor: w-resize; }
@@ -630,123 +572,6 @@ export const YsDraggableDialog: React.FC<DraggableDialogProps> = ({
             50% { transform: scale(1.2); }
             100% { transform: scale(1); }
         }
-
-        .dialog-header {
-          height: 48px;
-          padding: 0 12px 0 16px;
-
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-
-          // background: linear-gradient(
-          //   to bottom,
-          //   #fafafa,
-          //   #f5f5f5
-          // );
-          background: #fff;
-
-          border-bottom: 1px solid #f0f0f0;
-
-          user-select: none;
-          cursor: move;
-
-          transition:
-            background-color 240ms ease,
-            box-shadow 240ms ease;
-            
-        } 
-
-        .dialog-header:hover {
-          background: #fafafa;
-          box-shadow: inset 0 -1px 0 #e6e6e6;
-        }
-
-        .dialog-title {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          min-width: 0;
-        }
-
-        .dialog-drag-indicator {
-          width: 12px;
-          height: 12px;
-          border-radius: 2px;
-          background:
-            linear-gradient(
-              90deg,
-              rgba(0,0,0,0.25) 25%,
-              transparent 25%,
-              transparent 50%,
-              rgba(0,0,0,0.25) 50%,
-              rgba(0,0,0,0.25) 75%,
-              transparent 75%
-            );
-          background-size: 4px 4px;
-          opacity: 0.35;
-        }
-
-        .dialog-title-text {
-          font-size: 14px;
-          font-weight: 500;
-          color: rgba(0,0,0,0.85);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .draggable-dialog-wrapper {
-          display: flex;
-          flex-direction: column;
-          // background-color: #fff;
-          background: transparent;
-
-          border-radius: 8px;
-          overflow: hidden;
-
-          // box-shadow:
-          //   0 6px 16px rgba(0, 0, 0, 0.08),
-          //   0 3px 6px rgba(0, 0, 0, 0.12);
-
-          animation: dialogEnter 0.2s ease-out;
-
-          transition:
-            box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1),
-            transform 300ms cubic-bezier(0.4, 0, 0.2, 1),
-            width 320ms cubic-bezier(0.4, 0, 0.2, 1),
-            height 320ms cubic-bezier(0.4, 0, 0.2, 1),
-            top 320ms cubic-bezier(0.4, 0, 0.2, 1),
-            left 320ms cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .draggable-dialog-wrapper:hover .resize-handle .resize-handle:hover{
-          opacity: 1;
-        }
-          body.ys-dialog-dragging .draggable-dialog-wrapper {
-            transition: none;
-          }
-
-        /* 更细一点 */
-        .resize-handle.n,
-        .resize-handle.s {
-          height: 4px;
-        }
-        .resize-handle.e,
-        .resize-handle.w {
-          width: 4px;
-        }
-        @keyframes dialogEnter {
-        from {
-          opacity: 0;
-          // transform: scale(0.96);
-          transform: translateY(6px);
-        }
-        to {
-          opacity: 1;
-          // transform: scale(1);
-          transform: translateY(0);
-        }
-      }
       `}</style>
     </>,
     document.body,

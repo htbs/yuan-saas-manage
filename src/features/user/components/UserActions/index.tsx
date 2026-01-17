@@ -1,4 +1,4 @@
-import { Dropdown, Space, Avatar, MenuProps, Modal } from "antd";
+import { Dropdown, Space, Avatar, MenuProps } from "antd";
 import {
   LogoutOutlined,
   LockOutlined,
@@ -7,14 +7,11 @@ import {
 } from "@ant-design/icons";
 import { UserActionsProps } from "./UserActions.type";
 import useUserActions from "./useUserActions";
-import { ResetPasswordModal } from "../RestPassword/RestPasswordModal";
-import { useUserStore } from "../../stores/useUserStore";
-import { UserDetail } from "../UserDetail/UserDetail";
+import { ResetPasswordModal } from "../RestPassword";
 
 export default function UserDropdown(userActionsProps: UserActionsProps) {
   const { activeModal, colseModal, openModal, logout } = useUserActions();
   const { userName, userAvatar } = userActionsProps;
-  const setView = useUserStore((state) => state.setView);
   const handleClick: MenuProps["onClick"] = ({ key }) => {
     switch (key) {
       case "logout":

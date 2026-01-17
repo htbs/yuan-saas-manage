@@ -1,18 +1,18 @@
 import {
-    baseColumns,
-    useShopStore,
-    ShopListInfo,
-    ShopFilterListParams,
-    useShopList,
-    searchFields,
+  baseColumns,
+  useShopStore,
+  ShopListInfo,
+  ShopFilterListParams,
+  useShopList,
+  searchFields,
 } from "@/src/features/shop";
-import React, {useRef, useState, useEffect} from "react";
-import {YsDraggableDialog} from '@src/components/YsDraggableDialog/YsDraggableDialog';
+import React, { useRef, useState, useEffect } from "react";
+import { YsDraggableDialog } from "@/src/components/YsDraggableDialog/YsDraggableDialog1";
 import SchemaForm from "@src/components/YsForm/index";
-import {FormFieldConfig, SchemaFormRef} from "@src/components/YsForm/types";
-import {z} from "zod";
-import {Button, Space, Radio, Divider} from "antd";
-import {PlusOutlined} from "@ant-design/icons";
+import { FormFieldConfig, SchemaFormRef } from "@src/components/YsForm/types";
+import { z } from "zod";
+import { Button, Space, Radio, Divider } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import GenericFilterableList from "@/src/components/GenericFilterableList/GenericFilterableList";
 
 // 1. Zod Schema, 校验规则

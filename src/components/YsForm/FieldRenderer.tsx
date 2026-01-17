@@ -146,7 +146,7 @@ const FieldRenderer = <T extends FieldValues>({
 
   // 5. 判断是否需要 Flex 包裹 (针对非 Input 组件的插槽)
   const isInputWithAddon = ["input", "number", "password"].includes(
-    config.type
+    config.type,
   );
   const needWrapper = !isInputWithAddon && (contentBefore || contentAfter);
 
