@@ -11,7 +11,7 @@ import {
 
 // 分页查询字典列表
 export function findDictPageApi(
-  params: DictFilterListParams
+  params: DictFilterListParams,
 ): Promise<PageDict> {
   return request
     .getQuery<PageDict, DictFilterListParams>("/dict/page", params)
@@ -68,7 +68,7 @@ export function addDictApi(params: DictInfo): Promise<boolean> {
 
 // 分页查询字典项
 export function findDictItemPageApi(
-  params: DictItemFilterListParams
+  params: DictItemFilterListParams,
 ): Promise<PageDictItem> {
   return request
     .getQuery<PageDictItem, DictItemFilterListParams>("/dict/item/page", params)

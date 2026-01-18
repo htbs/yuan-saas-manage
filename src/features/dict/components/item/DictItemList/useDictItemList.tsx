@@ -13,7 +13,6 @@ import {
   FixedActionItem,
 } from "@/src/lib/utils/tableColumns";
 import { ActionItem } from "@/src/components/ui/dropdown/MoreActionsDropdown";
-import { useDictStore } from "../../../stores/useDictStore";
 import { message, Popconfirm } from "antd";
 
 export const useDictItemList = (baseColumns: ColumnType<DictItemInfo>[]) => {
@@ -22,8 +21,6 @@ export const useDictItemList = (baseColumns: ColumnType<DictItemInfo>[]) => {
     const result = await findDictItemPageApi(params);
     return { list: result.content, total: result.totalElements };
   }, []);
-
-  const setView = useDictStore((state) => state.setView);
 
   // 使用 useRef 存储 refetch 函数
   const [refetcher, setRefetcher] = useState<() => void>(() => () => {});
@@ -51,7 +48,7 @@ export const useDictItemList = (baseColumns: ColumnType<DictItemInfo>[]) => {
       {
         label: "编辑",
         onClick: (record) => {
-          setView("edit", record.id);
+          // setView("edit", record.id);
         },
         type: "primary",
       },
@@ -95,7 +92,7 @@ export const useDictItemList = (baseColumns: ColumnType<DictItemInfo>[]) => {
           refetcher,
           "status",
           (col.title as string) || "状态",
-          { checked: "N", unChecked: "Y" }
+          { checked: "N", unChecked: "Y" },
         );
       }
 
@@ -110,7 +107,7 @@ export const useDictItemList = (baseColumns: ColumnType<DictItemInfo>[]) => {
       // 其他列：保持原样
       return col;
     });
-  }, [baseColumns, apiUpdateStatus, refetcher, setView]);
+  }, [baseColumns, apiUpdateStatus, refetcher]);
 
   return {
     finalAllColumns,

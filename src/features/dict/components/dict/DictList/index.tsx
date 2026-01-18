@@ -12,19 +12,8 @@ import GenericFilterableList from "@/src/components/GenericFilterableList/Generi
 import { DictInfo } from "../../../types";
 
 export function DictList() {
-  const { finalAllColumns, fetchList, handleSetRefetch } =
+  const { finalAllColumns, fetchList, handleSetRefetch, addAction } =
     useDictList(baseColumns);
-  const { pagination, setPagination, setQueryParams, resetAll, setView } =
-    useDictStore();
-  const renderSearchActions = () => {
-    return (
-      <Space>
-        <Button icon={<PlusOutlined />} onClick={() => setView("add")}>
-          新增
-        </Button>
-      </Space>
-    );
-  };
   return (
     <div>
       <GenericFilterableList<DictInfo, DictFilterListParams>
@@ -33,11 +22,7 @@ export function DictList() {
         fetcher={fetchList}
         showIndexColumn={true}
         onRefetch={handleSetRefetch}
-        renderSearchActions={renderSearchActions}
-        controlledPagination={pagination} // 分页同步
-        onPaginationChange={setPagination} // 分页操作回调
-        onSearchUpdate={setQueryParams} // 搜索操作回调
-        onReset={resetAll} // 重置操作回调
+        renderSearchActions={addAction}
       />
     </div>
   );
