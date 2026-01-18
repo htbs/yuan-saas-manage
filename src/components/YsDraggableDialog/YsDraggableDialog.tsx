@@ -409,7 +409,7 @@ export const YsDraggableDialog: React.FC<DraggableDialogProps> = ({
   return ReactDOM.createPortal(
     <>
       {/* 👇 新增遮罩层 */}
-      <div className="dialog-visual-mask" />
+      {/*<div className="dialog-visual-mask" />*/}
       <div className="draggable-dialog-wrapper" style={dialogStyle}>
         {/* --- Header --- */}
         <div
@@ -699,15 +699,15 @@ export const YsDraggableDialog: React.FC<DraggableDialogProps> = ({
         .draggable-dialog-wrapper {
           display: flex;
           flex-direction: column;
-          // background-color: #fff;
-          background: transparent;
+          background-color: #fff;
+          // background: transparent;
 
           border-radius: 8px;
           overflow: hidden;
 
-          // box-shadow:
-          //   0 6px 16px rgba(0, 0, 0, 0.08),
-          //   0 3px 6px rgba(0, 0, 0, 0.12);
+          box-shadow:
+            0 6px 16px rgba(0, 0, 0, 0.08),
+            0 3px 6px rgba(0, 0, 0, 0.12);
 
           animation: dialogEnter 0.2s ease-out;
 

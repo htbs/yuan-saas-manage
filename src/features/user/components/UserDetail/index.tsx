@@ -36,7 +36,7 @@ const formSchema = z.object({
   phone: z.string().min(1, "请输入手机号"),
   roleIds: z.array(z.number()).min(1, "请选择角色"),
   verifyCode: z.string().min(4, "请输入验证码"),
-  headUrl: z.string().optional(),
+  headUrl: z.string().min(1, '请上传图片'),
 });
 
 export function UserEditDialog(props: UserEditDialogProps) {
@@ -145,7 +145,7 @@ export function UserEditDialog(props: UserEditDialogProps) {
       label: "上传图片",
       type: "custom",
       required: true,
-      component: () => <AvatarUploader />,
+      component: () => <AvatarUploader />
     },
   ];
 
@@ -166,6 +166,7 @@ export function UserEditDialog(props: UserEditDialogProps) {
         roleIds: [],
         verifyCode: "",
         headUrl: "",
+          favoriteColor: '',
       });
     }
     // 如果是编辑 ｜ 查看 调用接口给表单赋值
