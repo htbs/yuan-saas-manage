@@ -18,8 +18,8 @@ export const baseColumns: ColumnType<DictItemInfo>[] = [
   },
   {
     title: "状态",
-    dataIndex: "status",
-    key: "status",
+    dataIndex: "lockStatus",
+    key: "lockStatus",
     render: (value) => {
       if (value === "Y") return "禁用";
       if (value === "N") return "启用";

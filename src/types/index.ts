@@ -5,4 +5,5 @@ export enum CurdActionEnum {
   delete = "delete", // 删除
   view = "view", // 查看
   workbench = "workbench", // 工作台
+  item = "item", // 子项
 }

@@ -10,7 +10,7 @@ import path from "path";
 
 // 用户登录
 export function findShopPageApi(
-  params: ShopFilterListParams
+  params: ShopFilterListParams,
 ): Promise<PageShop> {
   return request
     .getQuery<PageShop, ShopFilterListParams>("/shop/page", params)
@@ -23,7 +23,7 @@ export function findShopPageApi(
  * @returns true/false
  */
 export function lockShopApi(id: string): Promise<boolean> {
-  return request.put<boolean, string>(`/shop/lcok/${id}`).then(unwrap);
+  return request.put<boolean, string>(`/shop/disable/${id}`).then(unwrap);
 }
 
 /**
@@ -32,7 +32,7 @@ export function lockShopApi(id: string): Promise<boolean> {
  * @returns true/false
  */
 export function unLockShopApi(id: string): Promise<boolean> {
-  return request.put<boolean, string>(`/shop/unlock/${id}`).then(unwrap);
+  return request.put<boolean, string>(`/shop/enable/${id}`).then(unwrap);
 }
 
 /**

@@ -16,6 +16,24 @@ export interface FixedActionItem<T> {
 }
 
 /**
+ * 安全执行“状态变更完成后的通知”
+ * - 避免 render / commit 阶段访问 ref
+ * - 兼容 useRef 间接函数
+ */
+export const safeNotify = (fn?: () => void) => {
+  if (!fn) return;
+
+  // 延迟到微任务队列，确保已脱离 render 阶段
+  queueMicrotask(() => {
+    try {
+      fn();
+    } catch (err) {
+      console.error("[StatusSwitch] onAfterChange error:", err);
+    }
+  });
+};
+
+/**
  * 封装生成标准“操作”列的逻辑
  * @param fixedActions 固定的、直接显示的按钮操作数组 (如：编辑)
  * @param moreActions "更多"下拉菜单中的操作数组
@@ -23,7 +41,7 @@ export interface FixedActionItem<T> {
  */
 export const createActionColumn = <T extends object>(
   fixedActions: FixedActionItem<T>[],
-  moreActions?: ActionItem<T>[]
+  moreActions?: ActionItem<T>[],
 ): ColumnType<T> => {
   // 确保 key 始终是 'action'
   const column: ColumnType<T> = {
@@ -85,7 +103,7 @@ const StatusSwitch = <T extends object>({
 
     try {
       await updateStatusApi(record, newStatus);
-      onAfterChange?.();
+      safeNotify(onAfterChange);
       // message.success({ content: "操作成功", key });
     } catch (error) {
       // message.error({ content: "操作失败", key });
@@ -110,7 +128,7 @@ const StatusSwitch = <T extends object>({
  */
 export const createSwitchStatusColumn = <
   T extends object,
-  V = string | number | boolean
+  V = string | number | boolean,
 >(
   updateStatusApi: (record: T, newStatus: V) => Promise<unknown>,
   onAfterChange: () => void,
@@ -119,7 +137,7 @@ export const createSwitchStatusColumn = <
   options: { checked: V; unChecked: V } = {
     checked: "Y" as unknown as V,
     unChecked: "N" as unknown as V,
-  }
+  },
 ): ColumnType<T> => {
   return {
     title,
@@ -155,7 +173,7 @@ export const createLinkColumn = <T extends object>(
   dataIndex: keyof T & (string | number),
   title: string,
   onClick: (record: T) => void,
-  options: Partial<ColumnType<T>> = {}
+  options: Partial<ColumnType<T>> = {},
 ): ColumnType<T> => {
   return {
     title,

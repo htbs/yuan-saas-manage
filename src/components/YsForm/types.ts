@@ -6,6 +6,7 @@ type DynamicProp<TData, TProp> = TProp | ((data: TData) => TProp);
 
 export type FieldType =
   | "input"
+  | "inputNumber"
   | "password"
   | "number"
   | "textarea"

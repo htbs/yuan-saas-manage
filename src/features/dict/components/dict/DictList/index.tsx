@@ -1,19 +1,24 @@
 import {
   baseColumns,
   DictFilterListParams,
-  useDictStore,
   useDictList,
   searchFields,
 } from "@/src/features/dict";
 
-import { Button, Space } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
 import GenericFilterableList from "@/src/components/GenericFilterableList/GenericFilterableList";
 import { DictInfo } from "../../../types";
+import { DictEditDialog } from "../DictDetail";
+import { DictItemListDialog } from "../../item/DictItemList";
 
 export function DictList() {
-  const { finalAllColumns, fetchList, handleSetRefetch, addAction } =
-    useDictList(baseColumns);
+  const {
+    finalAllColumns,
+    fetchList,
+    handleSetRefetch,
+    addAction,
+    baseDialogProps,
+    itemDialogProps,
+  } = useDictList(baseColumns);
   return (
     <div>
       <GenericFilterableList<DictInfo, DictFilterListParams>
@@ -24,6 +29,8 @@ export function DictList() {
         onRefetch={handleSetRefetch}
         renderSearchActions={addAction}
       />
+      <DictEditDialog {...baseDialogProps} />
+      <DictItemListDialog {...itemDialogProps} />
     </div>
   );
 }

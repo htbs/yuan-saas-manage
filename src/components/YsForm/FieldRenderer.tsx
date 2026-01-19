@@ -104,6 +104,8 @@ const FieldRenderer = <T extends FieldValues>({
     switch (config.type) {
       case "input":
         return <Input {...commonProps} />;
+      case "inputNumber":
+        return <InputNumber {...commonProps} />;
       case "password":
         return <Input.Password {...commonProps} />;
       case "number":

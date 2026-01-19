@@ -124,6 +124,32 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
         onClick: () => {},
       },
     ];
+
+    // 更多操作： 启用 / 禁用
+    const actionUpdateStatus: ActionItem<SysUserDataList>[] = [
+      {
+        key: "updateStatus",
+        label: (record) => (
+          <Popconfirm
+            title={`确定${record.status === "active" ? "禁用" : "启用"}该用户吗？`}
+            onConfirm={async () => {
+              await apiUpdateStatus(record);
+              triggerRefetch();
+              message.success(
+                `用户${record.status === "active" ? "禁用" : "启用"}成功`,
+              );
+            }}
+          >
+            {/* 阻止事件冒泡 */}
+            <a onClick={(e) => e.stopPropagation()}>
+              {record.status === "active" ? "禁用" : "启用"}
+            </a>
+          </Popconfirm>
+        ),
+        onClick: () => {},
+      },
+    ];
+
     /**
      * 最终列定义 原位增强
      */
@@ -141,24 +167,14 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
       }
 
       /**
-       * 状态列
-       */
-      // if (col.key === "status") {
-      //   return createSwitchStatusColumn<SysUserDataList, string>(
-      //     apiUpdateStatus,
-      //     onStatusChangeFinished,
-      //     "status",
-      //     (col.title as string) || "状态",
-      //     { checked: "active", unChecked: "suspended" }
-      //   );
-      // }
-
-      /**
        * 操作列
        */
       if (col.key === "action") {
         return {
-          ...createActionColumn(fixedActionEdit, actionItems),
+          ...createActionColumn(
+            fixedActionEdit,
+            [actionItems, actionUpdateStatus].flat(),
+          ),
           ...col, // 合并原始配置中的 width, fixed 等
         };
       }
@@ -166,7 +182,7 @@ export const useSysUserTable = (baseColumns: ColumnType<SysUserDataList>[]) => {
       // 其他列：保持原样
       return col;
     });
-  }, [baseColumns, openBaseDialog]);
+  }, [baseColumns, openBaseDialog, apiUpdateStatus]);
 
   return {
     /**

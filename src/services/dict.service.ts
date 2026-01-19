@@ -24,7 +24,7 @@ export function findDictPageApi(
  * @returns true/false
  */
 export function lockDictApi(id: string): Promise<boolean> {
-  return request.put<boolean, string>(`/dict/lock/${id}`).then(unwrap);
+  return request.put<boolean, string>(`/dict/disable/${id}`).then(unwrap);
 }
 
 /**
@@ -33,7 +33,7 @@ export function lockDictApi(id: string): Promise<boolean> {
  * @returns true/false
  */
 export function unLockDictApi(id: string): Promise<boolean> {
-  return request.put<boolean, string>(`/dict/unlock/${id}`).then(unwrap);
+  return request.put<boolean, string>(`/dict/enable/${id}`).then(unwrap);
 }
 
 /**
@@ -56,14 +56,14 @@ export function findDictByIdApi(id: string): Promise<DictInfo> {
  * 编辑字典详情
  */
 export function updateDictApi(params: DictInfo): Promise<boolean> {
-  return request.post<boolean, DictInfo>(`/dict/update`, params).then(unwrap);
+  return request.put<boolean, DictInfo>(`/dict/update`, params).then(unwrap);
 }
 
 /**
  * 新增字典
  */
 export function addDictApi(params: DictInfo): Promise<boolean> {
-  return request.post<boolean, DictInfo>(`/dict/add`, params).then(unwrap);
+  return request.post<boolean, DictInfo>(`/dict/create`, params).then(unwrap);
 }
 
 // 分页查询字典项
@@ -81,7 +81,7 @@ export function findDictItemPageApi(
  * @returns true/false
  */
 export function lockDictItemApi(id: string): Promise<boolean> {
-  return request.put<boolean, string>(`/dict/item/lock/${id}`).then(unwrap);
+  return request.put<boolean, string>(`/dict/item/enable/${id}`).then(unwrap);
 }
 
 /**
@@ -90,7 +90,7 @@ export function lockDictItemApi(id: string): Promise<boolean> {
  * @returns true/false
  */
 export function unLockDictItemApi(id: string): Promise<boolean> {
-  return request.put<boolean, string>(`/dict/item/unlock/${id}`).then(unwrap);
+  return request.put<boolean, string>(`/dict/item/disable/${id}`).then(unwrap);
 }
 
 /**
@@ -107,7 +107,7 @@ export function deleteDictItemApi(id: string): Promise<boolean> {
  */
 export function updateDictItemApi(params: DictItemInfo): Promise<boolean> {
   return request
-    .post<boolean, DictItemInfo>(`/dict/item/update`, params)
+    .put<boolean, DictItemInfo>(`/dict/item/update`, params)
     .then(unwrap);
 }
 
@@ -116,6 +116,6 @@ export function updateDictItemApi(params: DictItemInfo): Promise<boolean> {
  */
 export function addDictItemApi(params: DictItemInfo): Promise<boolean> {
   return request
-    .post<boolean, DictItemInfo>(`/dict/item/add`, params)
+    .post<boolean, DictItemInfo>(`/dict/item/create`, params)
     .then(unwrap);
 }

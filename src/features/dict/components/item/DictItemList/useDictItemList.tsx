@@ -1,5 +1,5 @@
 import { ColumnType } from "antd/es/table";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { DictItemFilterListParams, DictItemInfo } from "../../../types";
 import {
   findDictItemPageApi,
@@ -8,12 +8,13 @@ import {
   deleteDictItemApi,
 } from "@/src/services";
 import {
-  createSwitchStatusColumn,
   createActionColumn,
   FixedActionItem,
 } from "@/src/lib/utils/tableColumns";
 import { ActionItem } from "@/src/components/ui/dropdown/MoreActionsDropdown";
-import { message, Popconfirm } from "antd";
+import { Popconfirm, Space, Button } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { CurdActionEnum } from "@/src/types";
 
 export const useDictItemList = (baseColumns: ColumnType<DictItemInfo>[]) => {
   const fetchList = useCallback(async (params: DictItemFilterListParams) => {
@@ -22,19 +23,53 @@ export const useDictItemList = (baseColumns: ColumnType<DictItemInfo>[]) => {
     return { list: result.content, total: result.totalElements };
   }, []);
 
-  // 使用 useRef 存储 refetch 函数
-  const [refetcher, setRefetcher] = useState<() => void>(() => () => {});
-  // 设置回调函数，将 refetch 存入 ref
-  const handleSetRefetch = useCallback((fn: () => void) => {
-    setRefetcher(() => fn); // 注意：设置函数需要用函数式更新
+  /**
+   * 存储刷新数据的回调函数
+   */
+  const refetchRef = useRef<() => void>(() => () => {});
+  /**
+   * 注册列表刷新函数
+   */
+  const registerRefetch = useCallback((fn: () => void) => {
+    refetchRef.current = fn;
+  }, []);
+
+  /** 触发列表刷新 */
+  const triggerRefetch = useCallback(() => {
+    refetchRef.current?.();
+  }, []);
+
+  /**
+   * 设置编辑、详情、新增 Dialog 逻辑
+   */
+  const [baseDialogState, setBaseDialogState] = useState<{
+    isOpen: boolean;
+    mode: CurdActionEnum;
+    dictItemInfo?: DictItemInfo; // 数据ID
+  }>({ isOpen: false, mode: CurdActionEnum.add, dictItemInfo: undefined });
+
+  /**
+   * 打开编辑、详情、新增 Dialog
+   */
+  const openBaseDialog = useCallback(
+    (mode: CurdActionEnum, dictItemInfo?: DictItemInfo) => {
+      setBaseDialogState({ isOpen: true, mode, dictItemInfo });
+    },
+    [],
+  );
+
+  /**
+   * 关闭 编辑、详情、新增 Dialog
+   */
+  const closeBaseDialog = useCallback(() => {
+    setBaseDialogState((prev) => ({ ...prev, isOpen: false }));
   }, []);
 
   // 处理状态的启用禁用
   const apiUpdateStatus = useCallback(async (record: DictItemInfo) => {
-    const newStatus = record.status === "N" ? "Y" : "N";
     try {
       // 启用 / 禁用
-      if (newStatus === "Y") {
+      if (record.lockStatus === "Y") {
         await unLockDictItemApi(record.id);
       } else {
         await lockDictItemApi(record.id);
@@ -42,13 +77,29 @@ export const useDictItemList = (baseColumns: ColumnType<DictItemInfo>[]) => {
     } catch {}
   }, []);
 
+  /**
+   * 操作列：新增按钮
+   */
+  const addAction = useCallback(() => {
+    return (
+      <Space>
+        <Button
+          icon={<PlusOutlined />}
+          onClick={() => openBaseDialog(CurdActionEnum.add)}
+        >
+          新增
+        </Button>
+      </Space>
+    );
+  }, [openBaseDialog]);
+
   const finalAllColumns = useMemo(() => {
-    // 创建操作列
+    // 固定列 - 编辑
     const editItems: FixedActionItem<DictItemInfo>[] = [
       {
         label: "编辑",
         onClick: (record) => {
-          // setView("edit", record.id);
+          openBaseDialog(CurdActionEnum.edit, record);
         },
         type: "primary",
       },
@@ -64,7 +115,8 @@ export const useDictItemList = (baseColumns: ColumnType<DictItemInfo>[]) => {
             onConfirm={async () => {
               // 删除字典项
               await deleteDictItemApi(record.id);
-              message.success(`删除成功`);
+              // 刷新列表
+              triggerRefetch();
             }}
           >
             <a onClick={(e) => e.stopPropagation()}>删除</a>
@@ -73,6 +125,30 @@ export const useDictItemList = (baseColumns: ColumnType<DictItemInfo>[]) => {
         onClick: () => {},
       },
     ];
+
+    // 启用 / 禁用
+    const lockStatusItems: ActionItem<DictItemInfo>[] = [
+      {
+        key: "lockStatus",
+        label: (record) => (
+          <Popconfirm
+            title={record.lockStatus === "Y" ? "确定禁用吗？" : "确定启用吗？"}
+            onConfirm={async () => {
+              // 启用 / 禁用
+              apiUpdateStatus(record);
+              // 刷新列表
+              triggerRefetch();
+            }}
+          >
+            <a onClick={(e) => e.stopPropagation()}>
+              {record.lockStatus === "Y" ? "启用" : "禁用"}
+            </a>
+          </Popconfirm>
+        ),
+        onClick: () => {},
+      },
+    ];
+
     // 使用 .map 遍历原始列配置，实现“原位增强”
     return baseColumns.map((col) => {
       // 用户账号列 (Link)
@@ -86,20 +162,23 @@ export const useDictItemList = (baseColumns: ColumnType<DictItemInfo>[]) => {
       // }
 
       // 状态列 (Switch)
-      if (col.key === "status") {
-        return createSwitchStatusColumn<DictItemInfo, string>(
-          apiUpdateStatus,
-          refetcher,
-          "status",
-          (col.title as string) || "状态",
-          { checked: "N", unChecked: "Y" },
-        );
-      }
+      // if (col.key === "status") {
+      //   return createSwitchStatusColumn<DictItemInfo, string>(
+      //     apiUpdateStatus,
+      //     refetcher,
+      //     "status",
+      //     (col.title as string) || "状态",
+      //     { checked: "N", unChecked: "Y" },
+      //   );
+      // }
 
       // 操作列
       if (col.key === "action") {
         return {
-          ...createActionColumn([...editItems], [...deleteItems]),
+          ...createActionColumn(
+            [...editItems],
+            [...deleteItems, ...lockStatusItems],
+          ),
           ...col, // 合并原始配置中的 width, fixed 等
         };
       }
@@ -107,11 +186,17 @@ export const useDictItemList = (baseColumns: ColumnType<DictItemInfo>[]) => {
       // 其他列：保持原样
       return col;
     });
-  }, [baseColumns, apiUpdateStatus, refetcher]);
+  }, [baseColumns, openBaseDialog, triggerRefetch, apiUpdateStatus]);
 
   return {
     finalAllColumns,
     fetchList,
-    handleSetRefetch,
+    registerRefetch,
+    addAction,
+    dialogProps: {
+      ...baseDialogState,
+      onClose: closeBaseDialog,
+      onSuccess: triggerRefetch, // 刷新列表方法
+    },
   };
 };

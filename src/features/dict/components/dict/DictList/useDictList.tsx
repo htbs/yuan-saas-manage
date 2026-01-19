@@ -8,13 +8,12 @@ import {
   deleteDictApi,
 } from "@/src/services";
 import {
-  createSwitchStatusColumn,
   createActionColumn,
   FixedActionItem,
   createLinkColumn,
 } from "@/src/lib/utils/tableColumns";
 import { ActionItem } from "@/src/components/ui/dropdown/MoreActionsDropdown";
-import { message, Popconfirm, Space, Button } from "antd";
+import { Popconfirm, Space, Button } from "antd";
 import { useRef } from "react";
 import { CurdActionEnum } from "@/src/types";
 import { PlusOutlined } from "@ant-design/icons";
@@ -42,15 +41,15 @@ export const useDictList = (baseColumns: ColumnType<DictInfo>[]) => {
   const [baseDialogState, setBaseDialogState] = useState<{
     isOpen: boolean;
     mode: CurdActionEnum;
-    dictId?: string; // 数据ID
-  }>({ isOpen: false, mode: CurdActionEnum.add, dictId: "" });
+    dictInfo?: DictInfo; // 数据ID
+  }>({ isOpen: false, mode: CurdActionEnum.add, dictInfo: undefined });
 
   /**
    * 打开编辑、详情、新增 Dialog
    */
   const openBaseDialog = useCallback(
-    (mode: CurdActionEnum, dictId?: string) => {
-      setBaseDialogState({ isOpen: true, mode, dictId });
+    (mode: CurdActionEnum, dictInfo?: DictInfo) => {
+      setBaseDialogState({ isOpen: true, mode, dictInfo });
     },
     [],
   );
@@ -62,40 +61,39 @@ export const useDictList = (baseColumns: ColumnType<DictInfo>[]) => {
     setBaseDialogState((prev) => ({ ...prev, isOpen: false }));
   }, []);
 
-  // /**
-  //  * 设置编辑、详情、新增 Dialog 逻辑
-  //  */
-  // const [workBenchDialogState, setWorkBenchDialogState] = useState<{
-  //   isOpen: boolean;
-  //   shopId: string; // 数据ID
-  // }>({ isOpen: false, shopId: "" });
+  /**
+   * 设置 字典项 Dialog 逻辑
+   */
+  const [itemDialogState, setItemDialogState] = useState<{
+    isOpen: boolean;
+    dictCode: string; // 数据Code
+  }>({ isOpen: false, dictCode: "" });
 
-  // /**
-  //  * 打开编辑、详情、新增 Dialog
-  //  */
-  // const openWorkBenchDialog = useCallback((shopId: string) => {
-  //   setWorkBenchDialogState({ isOpen: true, shopId });
-  // }, []);
+  /**
+   * 打开编辑、详情、新增 Dialog
+   */
+  const openItemDialog = useCallback((dictCode: string) => {
+    setItemDialogState({ isOpen: true, dictCode });
+  }, []);
 
-  // /**
-  //  * 关闭 编辑、详情、新增 Dialog
-  //  */
-  // const closeWorkBenchDialog = useCallback(() => {
-  //   setWorkBenchDialogState((prev) => ({ ...prev, isOpen: false }));
-  // }, []);
+  /**
+   * 关闭 编辑、详情、新增 Dialog
+   */
+  const closeItemDialog = useCallback(() => {
+    setItemDialogState((prev) => ({ ...prev, isOpen: false }));
+  }, []);
 
   // 处理状态的启用禁用
-  // const apiUpdateStatus = useCallback(async (record: DictInfo) => {
-  //   const newStatus = record.status === "N" ? "Y" : "N";
-  //   try {
-  //     // 启用 / 禁用
-  //     if (newStatus === "Y") {
-  //       await unLockDictApi(record.id);
-  //     } else {
-  //       await lockDictApi(record.id);
-  //     }
-  //   } catch {}
-  // }, []);
+  const apiUpdateStatus = useCallback(async (record: DictInfo) => {
+    try {
+      // 启用 / 禁用
+      if (record.lockStatus === "Y") {
+        await unLockDictApi(record.id);
+      } else {
+        await lockDictApi(record.id);
+      }
+    } catch {}
+  }, []);
 
   /**
    * 操作列：新增按钮
@@ -127,7 +125,18 @@ export const useDictList = (baseColumns: ColumnType<DictInfo>[]) => {
       {
         label: "编辑",
         onClick: (record) => {
-          openBaseDialog(CurdActionEnum.edit, record.id);
+          openBaseDialog(CurdActionEnum.edit, record);
+        },
+        type: "primary",
+      },
+    ];
+
+    // 固定操作：子项内容
+    const detailItems: FixedActionItem<DictInfo>[] = [
+      {
+        label: "详情",
+        onClick: (record) => {
+          openItemDialog(record.dictCode);
         },
         type: "primary",
       },
@@ -143,7 +152,8 @@ export const useDictList = (baseColumns: ColumnType<DictInfo>[]) => {
             onConfirm={async () => {
               // 删除字典
               await deleteDictApi(record.id);
-              message.success(`删除成功`);
+              // 刷新列表
+              triggerRefetch();
             }}
           >
             <a onClick={(e) => e.stopPropagation()}>删除</a>
@@ -152,6 +162,30 @@ export const useDictList = (baseColumns: ColumnType<DictInfo>[]) => {
         onClick: () => {},
       },
     ];
+
+    // 启用禁用
+    const lockStatusItems: ActionItem<DictInfo>[] = [
+      {
+        key: "lockStatus",
+        label: (record) => (
+          <Popconfirm
+            title={record.lockStatus === "Y" ? "确定禁用吗？" : "确定启用吗？"}
+            onConfirm={async () => {
+              // 启用 / 禁用
+              apiUpdateStatus(record);
+              // 刷新列表
+              triggerRefetch();
+            }}
+          >
+            <a onClick={(e) => e.stopPropagation()}>
+              {record.lockStatus === "Y" ? "启用" : "禁用"}
+            </a>
+          </Popconfirm>
+        ),
+        onClick: () => {},
+      },
+    ];
+
     // 使用 .map 遍历原始列配置，实现“原位增强”
     return baseColumns.map((col) => {
       // 用户账号列 (Link)
@@ -159,26 +193,18 @@ export const useDictList = (baseColumns: ColumnType<DictInfo>[]) => {
         return createLinkColumn<DictInfo>(
           "dictName",
           (col.title as string) || "字典名称",
-          (record) => openBaseDialog(CurdActionEnum.view, record.id),
+          (record) => openBaseDialog(CurdActionEnum.view, record),
           { ...col }, // 继承原有的 width, fixed 等配置
         );
       }
 
-      // 状态列 (Switch)
-      // if (col.key === "status") {
-      //   return createSwitchStatusColumn<DictInfo, string>(
-      //     apiUpdateStatus,
-      //     refetcher,
-      //     "status",
-      //     (col.title as string) || "锁定状态",
-      //     { checked: "N", unChecked: "Y" },
-      //   );
-      // }
-
       // 操作列
       if (col.key === "action") {
         return {
-          ...createActionColumn([...editItems], [...deleteItems]),
+          ...createActionColumn(
+            [...editItems, ...detailItems],
+            [...deleteItems, ...lockStatusItems],
+          ),
           ...col, // 合并原始配置中的 width, fixed 等
         };
       }
@@ -186,7 +212,7 @@ export const useDictList = (baseColumns: ColumnType<DictInfo>[]) => {
       // 其他列：保持原样
       return col;
     });
-  }, [baseColumns, openBaseDialog]);
+  }, [baseColumns, openBaseDialog, openItemDialog, triggerRefetch]);
 
   return {
     finalAllColumns,
@@ -199,6 +225,14 @@ export const useDictList = (baseColumns: ColumnType<DictInfo>[]) => {
     baseDialogProps: {
       ...baseDialogState,
       onClose: closeBaseDialog,
+      onSuccess: triggerRefetch, // 刷新列表方法
+    },
+    /**
+     * 字典项 Dialog
+     */
+    itemDialogProps: {
+      ...itemDialogState,
+      onClose: closeItemDialog,
       onSuccess: triggerRefetch, // 刷新列表方法
     },
   };

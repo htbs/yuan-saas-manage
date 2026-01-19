@@ -24,7 +24,12 @@ export const baseColumns: ColumnType<SysUserDataList>[] = [
   { title: "用户手机号", dataIndex: "phone", key: "realName" },
   { title: "创建日期", dataIndex: "createAt", key: "createdAt" },
   { title: "更新日期", dataIndex: "updateAt", key: "updateAt" },
-  { title: "状态", dataIndex: "status", key: "status" },
+  {
+    title: "状态",
+    dataIndex: "status",
+    key: "status",
+    render: (status) => (status === "active" ? "启用" : "禁用"),
+  },
   { title: "操作", dataIndex: "action", key: "action" },
 ];
 

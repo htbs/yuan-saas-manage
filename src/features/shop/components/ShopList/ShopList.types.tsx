@@ -44,6 +44,11 @@ export const baseColumns: ColumnType<ShopListInfo>[] = [
   { title: "签约时间", dataIndex: "signedStartAt", key: "signedStartAt" },
   { title: "到期时间", dataIndex: "signedEndAt", key: "signedEndAt" },
   { title: "创建时间", dataIndex: "createAt", key: "createAt" },
-  { title: "锁定状态", dataIndex: "lockStatus", key: "lockStatus" },
+  {
+    title: "锁定状态",
+    dataIndex: "lockStatus",
+    key: "lockStatus",
+    render: (value) => (value === "N" ? "启用" : "禁用"),
+  },
   { title: "操作", dataIndex: "action", key: "action", width: 170 },
 ];

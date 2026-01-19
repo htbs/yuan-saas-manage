@@ -30,7 +30,7 @@ export type ListRequestParams<F extends object = Record<string, unknown>> =
 // 2. 通用的列表 Props 类型
 export interface GenericListProps<
   T extends object,
-  F extends object = Record<string, unknown>
+  F extends object = Record<string, unknown>,
 > {
   // 传入 Antd Table 的 Columns，T 是数据项类型
   columns: ColumnType<T>[];
@@ -41,7 +41,7 @@ export interface GenericListProps<
   // 核心：数据获取函数。接收筛选参数+分页信息，返回 Promise<T[]>
   fetcher: (
     params: ListRequestParams<F>,
-    config?: AxiosRequestConfig // 允许传递额外的 Axios 配置
+    config?: AxiosRequestConfig, // 允许传递额外的 Axios 配置
   ) => Promise<{ list: T[]; total: number }>;
 
   showIndexColumn?: boolean; // 是否显示索引列

@@ -2,6 +2,7 @@ import { FormFieldConfig } from "@/src/components/GenericFilterableList/types";
 import { ColumnType } from "antd/es/table";
 import { RoleInfo } from "../../types";
 import { Tooltip } from "antd";
+import { parseUserInfo } from "@src/lib/utils";
 
 // 搜索表单配置
 export const searchFields: FormFieldConfig[] = [
@@ -32,6 +33,7 @@ export const baseColumns: ColumnType<RoleInfo>[] = [
     title: "操作人",
     dataIndex: "updateBy",
     key: "updateBy",
+    render: (value) => parseUserInfo(value)?.userName || "",
   },
   { title: "操作", dataIndex: "action", key: "action", width: 170 },
 ];

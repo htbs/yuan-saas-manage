@@ -8,9 +8,9 @@ import SearchForm from "./SearchForm";
 // 核心通用列表组件
 const GenericFilterableList = <
   T extends object,
-  F extends object = Record<string, unknown>
+  F extends object = Record<string, unknown>,
 >(
-  props: GenericListProps<T, F>
+  props: GenericListProps<T, F>,
 ) => {
   // 1. 初始化表单实例
   const [form] = Form.useForm<F>();

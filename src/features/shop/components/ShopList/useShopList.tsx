@@ -85,17 +85,17 @@ export const useShopList = (baseColumns: ColumnType<ShopListInfo>[]) => {
   /**
    * 状态更新
    */
-  // const apiUpdateStatus = useCallback(async (record: ShopListInfo) => {
-  //   const newStatus = record.lockStatus === "N" ? "Y" : "N";
-  //   try {
-  //     // 启用 / 禁用
-  //     if (newStatus === "Y") {
-  //       await unLockShopApi(record.id);
-  //     } else {
-  //       await lockShopApi(record.id);
-  //     }
-  //   } catch {}
-  // }, []);
+  const apiUpdateStatus = useCallback(async (record: ShopListInfo) => {
+    try {
+      console.log("lockStatus", record.lockStatus);
+      // 启用 / 禁用
+      if (record.lockStatus === "Y") {
+        await unLockShopApi(record.id);
+      } else {
+        await lockShopApi(record.id);
+      }
+    } catch {}
+  }, []);
 
   /**
    * 获取列表数据
@@ -162,6 +162,28 @@ export const useShopList = (baseColumns: ColumnType<ShopListInfo>[]) => {
         onClick: () => {},
       },
     ];
+
+    // 更多操作： 修改状态
+    const updateStatusItems: ActionItem<ShopListInfo>[] = [
+      {
+        key: "updateStatus",
+        label: (record) => (
+          <Popconfirm
+            title={`确定${record.lockStatus === "N" ? "禁用" : "启用"}该商家吗？`}
+            onConfirm={async () => {
+              // 启用 / 禁用
+              await apiUpdateStatus(record);
+              triggerRefetch();
+            }}
+          >
+            <a onClick={(e) => e.stopPropagation()}>
+              {record.lockStatus === "N" ? "禁用" : "启用"}
+            </a>
+          </Popconfirm>
+        ),
+        onClick: () => {},
+      },
+    ];
     // 使用 .map 遍历原始列配置，实现“原位增强”
     return baseColumns.map((col) => {
       // 用户账号列 (Link)
@@ -174,23 +196,12 @@ export const useShopList = (baseColumns: ColumnType<ShopListInfo>[]) => {
         );
       }
 
-      // 状态列 (Switch)
-      // if (col.key === "lockStatus") {
-      //   return createSwitchStatusColumn<ShopListInfo, string>(
-      //     apiUpdateStatus,
-      //     refetcher,
-      //     "lockStatus",
-      //     (col.title as string) || "锁定状态",
-      //     { checked: "N", unChecked: "Y" },
-      //   );
-      // }
-
       // 操作列
       if (col.key === "action") {
         return {
           ...createActionColumn(
             [...editItems, ...workbenchItems],
-            [...deleteItems],
+            [updateStatusItems, deleteItems].flat(),
           ),
           ...col, // 合并原始配置中的 width, fixed 等
         };
@@ -199,7 +210,13 @@ export const useShopList = (baseColumns: ColumnType<ShopListInfo>[]) => {
       // 其他列：保持原样
       return col;
     });
-  }, [baseColumns, openBaseDialog, triggerRefetch, openWorkBenchDialog]);
+  }, [
+    baseColumns,
+    openBaseDialog,
+    triggerRefetch,
+    openWorkBenchDialog,
+    apiUpdateStatus,
+  ]);
 
   return {
     /**

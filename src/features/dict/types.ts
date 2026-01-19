@@ -5,10 +5,10 @@ import { BaseResult, PageParams, Page } from "@/src/types/constant";
  */
 export interface DictInfo extends BaseResult {
   dictName: string; // 名称
-  dictType: string; // 字典类型
+  dictCode: string; // 字典编码
   platform: string; // 平台
   sort: number; // 排序
-  status: string; // 状态
+  lockStatus: string; // 状态
   remark: string; // 备注
 }
 
@@ -19,7 +19,7 @@ export interface DictItemInfo extends BaseResult {
   dictType: string; // 字典类型
   dictLabel: string; // 项名称
   dictValue: string; // 项值
-  status: string; // 状态
+  lockStatus: string; // 状态
   sort: number; // 排序
   remark: string; // 备注
 }
@@ -48,3 +48,13 @@ export interface DictItemFilterListParams extends PageParams {
  * 字典项列表数据
  */
 export type PageDictItem = Page<DictItemInfo>;
+
+/**
+ * 平台选项
+ */
+export const platformOptions = [
+  { value: "COMMON", label: "全平台" },
+  { value: "PLATFORM", label: "元识管理端" },
+  { value: "SHOP", label: "商家端" },
+  { value: "USER", label: "用户端" },
+];

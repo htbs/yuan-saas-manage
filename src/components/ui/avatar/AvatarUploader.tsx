@@ -41,7 +41,7 @@ const AvatarUploader: React.FC<AvatarUploaderProps> = ({
               url: value,
             },
           ]
-        : []
+        : [],
     );
   }, [value]);
 
@@ -76,7 +76,7 @@ const AvatarUploader: React.FC<AvatarUploaderProps> = ({
         setLoading(false);
       }
     },
-    [onChange]
+    [onChange],
   );
 
   // 渲染上传核心逻辑
